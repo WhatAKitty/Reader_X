@@ -11,7 +11,7 @@
 		"prop-types": "^15.6.0",
 		"querystring": "^0.2.0",
 		"react": "16.0.0-beta.5",
-		"react-native": "0.49.2",
+		"react-native": "0.49.3",
 		"react-native-bottom-sheet": "^1.0.2",
 		"react-native-elements": "^0.17.0",
 		"react-native-fetch-mock": "^0.3.0",
