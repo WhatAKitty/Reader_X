@@ -4331,9 +4331,9 @@ react-native-elements@^0.19.0:
     opencollective "^1.0.3"
     prop-types "^15.5.8"
 
-react-native-fetch-mock@^0.5.2:
-  version "0.5.2"
-  resolved "https://registry.yarnpkg.com/react-native-fetch-mock/-/react-native-fetch-mock-0.5.2.tgz#a3b3f3ecc69ae73e9887c4d8f33a8e9378ff55c0"
+react-native-fetch-mock@^0.6.1:
+  version "0.6.1"
+  resolved "https://registry.yarnpkg.com/react-native-fetch-mock/-/react-native-fetch-mock-0.6.1.tgz#5239efc71d83551e989c261da17bebf3274766fb"
   dependencies:
     mockjs "^1.0.1-beta3"
     path-to-regexp "^2.1.0"
