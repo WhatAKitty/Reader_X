@@ -113,7 +113,7 @@ class CatalogScreen extends PureComponent {
           data={this.state.bookList}
           renderItem={this.renderRow}
           ItemSeparatorComponent={this.renderSeparator}
-          keyExtractor={(item, index) => item.ChapterId}
+          keyExtractor={(item, index) => `${item.ChapterId}`}
           refreshState={this.state.fetchFlag}
           getItemLayout={(data, index) => ({ length: 50, offset: 51 * index, index })}//行高38，分割线1，所以offset=39
           onHeaderRefresh={this.onHeaderRefresh} />

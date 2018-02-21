@@ -41,7 +41,7 @@ class RecommandScreen extends Component {
     return (
       <Page>
         <BookList
-          keyExtractor={(item, index) => item.BookId}
+          keyExtractor={(item, index) => `${item.BookId}`}
           dynamic={true}
           type={BookListType.Complete}
           booklist={this.state.result}

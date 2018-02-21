@@ -62,7 +62,7 @@ class RankingScreen extends Component {
     return (
       <Page>
         <BookList
-          keyExtractor={(item, index) => item.BookId}
+          keyExtractor={(item, index) => `${item.BookId}`}
           dynamic={false}
           type={BookListType.Complete}
           booklist={this.state.result}

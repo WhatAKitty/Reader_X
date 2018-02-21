@@ -148,7 +148,7 @@ class ShelfScreen extends Component {
             let BookId = item.BookId;
             this.props.screenProps.router.navigate(this.props.navigation, 'Book', { BookId: BookId }, NavigationActions.navigate({ routeName: 'Read', params: { BookId: BookId } }));
           }}
-          keyExtractor={(item, index) => item.BookId}
+          keyExtractor={(item, index) => `${item.BookId}`}
         />
       </Page>
     );
