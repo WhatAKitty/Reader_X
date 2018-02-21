@@ -9,8 +9,13 @@ import DeviceStorage from './utils/DeviceStorage';
 global.DeviceStorage = DeviceStorage;
 
 // mock data
-// const fetch = new FetchMock(require('../__mocks__')).fetch;
-// global.fetch = fetch;
+const fetch = new FetchMock(require('../__mocks__'), {
+  fetch: global.fetch,
+  exclude: [
+    'https://(.*)',
+  ],
+}).fetch;
+global.fetch = fetch;
 
 
 export default (props) => {
