@@ -105,7 +105,7 @@ class CatalogScreen extends PureComponent {
 
   render() {
     return (
-      <List style={{ flex: 1 }} >
+      <List style={{ flex: 1, marginTop: 0 }} >
         <RefreshFlatList
           style={{ backgroundColor: '#eeeeee' }}
           ref={'lst1'}

@@ -1,5 +1,13 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, Dimensions, TouchableOpacity, InteractionManager, TouchableWithoutFeedback } from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  View,
+  Dimensions,
+  TouchableOpacity,
+  InteractionManager,
+  TouchableWithoutFeedback,
+} from 'react-native';
 
 import { Icon } from 'react-native-elements';
 import { NavigationActions } from 'react-navigation';
@@ -18,6 +26,8 @@ class BottomNav extends Component {
     tht = this;
 
     this.settingShow = this.settingShow.bind(this);
+    this.renderSettingBar = this.renderSettingBar.bind(this);
+    this.renderBottomBtn = this.renderBottomBtn.bind(this);
   }
 
   settingShow() {
@@ -25,74 +35,104 @@ class BottomNav extends Component {
     this.setState({ isSetting: !flag });
   }
 
+  renderSettingBar() {
+    return (
+      <View style={styles.Setting}>
+        {
+          Object.keys(BACKGROUND_COLOR).map(key => {
+            const item = BACKGROUND_COLOR[key];
+            return (
+              <TouchableWithoutFeedback key={key} onPress={() => this.props.onChangeBackGround(item)}>
+                <View style={[styles.roundx, { backgroundColor: containerColors[item.name] }]} />
+              </TouchableWithoutFeedback>
+            );
+          })
+        }
+      </View>
+    );
+  }
+
+  renderBottomBtn({
+    title,
+    icon,
+    onPress,
+  }) {
+    return (
+      <TouchableOpacity
+        key={title}
+        style={{ flex: 1 }}
+        onPress={onPress}
+      >
+        <Icon
+          size={24}
+          name={icon}
+          type='MaterialIcons'
+          color={'#fff'} />
+        <Text style={styles.FotterItems}>{title}</Text>
+      </TouchableOpacity>
+    );
+  }
+
   render() {
+    const buttons = [{
+      title: '目录',
+      icon: 'format-list-bulleted',
+      onPress: () => {
+        let item = {
+          chapterList: this.props.chapterList,
+          bookName: this.props.bookName,
+          bookNum: this.props.recordNum,
+          callback: (chapterId, index) => {
+            this.props.getContent(chapterId, index);
+          }
+        };
+        this.props.screenProps.router.navigate(this.props.navigation, 'Book', {}, NavigationActions.navigate({ routeName: 'Catalog', params: item }));
+      },
+    }, {
+      title: '夜间',
+      icon: 'brightness-low',
+      onPress: this.props.modeChange,
+    }, {
+      title: '设置',
+      icon: 'settings',
+      onPress: this.settingShow,
+    }];
     return (
       <View>
-        {this.state.isSetting && <View style={styles.Setting}>
-          <TouchableWithoutFeedback onPress={() => { this.props.changeBackGround(1) }}>
-            <View style={[styles.roundx, { backgroundColor: containerColors.zhuishuGreen }]} />
-          </TouchableWithoutFeedback>
-          <TouchableWithoutFeedback onPress={() => { this.props.changeBackGround(2) }}>
-            <View style={[styles.roundx, { backgroundColor: containerColors.qidianPink }]} />
-          </TouchableWithoutFeedback>
-          <TouchableWithoutFeedback onPress={() => { this.props.changeBackGround(3) }}>
-            <View style={[styles.roundx, { backgroundColor: containerColors.qidianRockYellow }]} />
-          </TouchableWithoutFeedback>
-          <TouchableWithoutFeedback onPress={() => { this.props.changeBackGround(4) }}>
-            <View style={[styles.roundx, { backgroundColor: containerColors.qidianwhite }]} />
-          </TouchableWithoutFeedback>
-          <TouchableWithoutFeedback onPress={() => { this.props.changeBackGround(5) }}>
-            <View style={[styles.roundx, { backgroundColor: containerColors.qidianX }]} />
-          </TouchableWithoutFeedback >
-          <TouchableWithoutFeedback onPress={() => { this.props.changeBackGround(6) }}>
-            <View style={[styles.roundx, { backgroundColor: containerColors.qidianY }]} />
-          </TouchableWithoutFeedback >
-        </View>}
+        {this.state.isSetting && this.renderSettingBar()}
         <View style={styles.Fotter}>
-          <TouchableOpacity style={{ flex: 1 }} onPress={() => {
-            let item = {
-              chapterList: this.props.chapterList,
-              bookName: this.props.bookName,
-              bookNum: this.props.recordNum,
-              callback: (chapterId, index) => {
-                // console.log(`${chapterId}   ${index} `);
-                this.props.getContent(chapterId, index);
-              }
-            };
-            this.props.screenProps.router.navigate(this.props.navigation, 'Book', {}, NavigationActions.navigate({ routeName: 'Catalog', params: item }));
-          }}>
-            <Icon
-              size={24}
-              name='format-list-bulleted'
-              type='MaterialIcons'
-              color={'#fff'} />
-            <Text style={styles.FotterItems}>目录</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={{ flex: 1 }}
-            onPress={() => { this.props.modeChange(); }}
-          >
-            <Icon
-              size={24}
-              name="brightness-low" //brightness-high 日间模式
-              type='MaterialIcons'
-              color={'#fff'} />
-            <Text style={styles.FotterItems}>夜间</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={{ flex: 1 }} onPress={() => { this.settingShow() }}>
-            <Icon
-              size={24}
-              name="settings"
-              type='MaterialIcons'
-              color={'#fff'} />
-            <Text style={styles.FotterItems}>设置</Text>
-          </TouchableOpacity>
+          {buttons.map(button => this.renderBottomBtn(button))}
         </View>
       </View>
-
     );
   }
 }
 
+export const BACKGROUND_COLOR = {
+  'ZHUISHU_GREEN': {
+    value: 1,
+    name: 'zhuishuGreen',
+  },
+  'QIDIAN_PINK': {
+    value: 2,
+    name: 'qidianPink',
+  },
+  'QIDIAN_ROCK_YELLOW': {
+    value: 3,
+    name: 'qidianRockYellow',
+  },
+  'QIDIAN_WHITE': {
+    value: 4,
+    name: 'qidianwhite',
+  },
+  'QIDIAN_X': {
+    value: 5,
+    name: 'qidianX',
+  },
+  'QIDIAN_Y': {
+    value: 6,
+    name: 'qidianY',
+  },
+};
 
 export default BottomNav;

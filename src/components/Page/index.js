@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { View, Text } from 'react-native';
+import { View, Text, TouchableWithoutFeedback } from 'react-native';
 import { Button } from 'react-native-elements';
 
 import EmptyView from '../EmptyView';
@@ -14,11 +14,14 @@ class Page extends Component {
     children: PropTypes.node.isRequired,
 
     init: PropTypes.func.isRequired,
+
+    onPress: PropTypes.func.isRequired,
   }
   static defaultProps = {
     containerStyle: {},
     enableLoad: false,
     init: () => { },
+    onPress: () => {},
   }
 
   constructor(props) {
@@ -54,9 +57,13 @@ class Page extends Component {
     }
 
     return (
-      <View style={[styles.container, this.props.containerStyle, { flex: 1 }]}>
-        {this.props.children}
-      </View>
+      <TouchableWithoutFeedback
+        onPress={this.props.onPress}
+      >
+        <View style={[styles.container, this.props.containerStyle, { flex: 1 }]}>
+          {this.props.children}
+        </View>
+      </TouchableWithoutFeedback>
     );
   }
 }

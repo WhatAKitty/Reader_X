@@ -10,13 +10,16 @@ import async from 'async';
 import ViewPager from '../../components/ViewPager';
 import getContextArr from '../../utils/getContextArr';
 import BottomNav from '../../components/BottomNav';
+import Page from '../../components/Page';
 
 import { content, chapterList } from '../../services/book';
 import realm, { SortDescriptor } from '../../models';
 import { mergeDeep } from '../../utils/object';
+import constants from '../../utils/constants';
 
 import styles, { containerColors } from './index.style';
 
+const { STATUS } = constants;
 const width = styles.common.width;
 const height = styles.common.height;
 
@@ -118,7 +121,7 @@ class ReadScreen extends PureComponent {
     this.sourceselect = 'bqg';
 
     this.state = {
-      loadFlag: true, //判断是出于加载状态还是显示状态
+      status: STATUS.READY,     // 准备状态
       currentItem: '', //作为章节内容的主要获取来源。
       isVisible: false, //判断导航栏是否应该隐藏
       goFlag: 0, //判断是前往上一章（-1）还是下一章（1）
@@ -127,7 +130,6 @@ class ReadScreen extends PureComponent {
 
     tht = this;
 
-    this.renderPage = this.renderPage.bind(this);
     this.getNextPage = this.getNextPage.bind(this);
     this.getPrevPage = this.getPrevPage.bind(this);
     this.getCurrentPage = this.getCurrentPage.bind(this);
@@ -136,10 +138,12 @@ class ReadScreen extends PureComponent {
     this.getContent = this.getContent.bind(this);
     this.getMapAndLst = this.getMapAndLst.bind(this);
     this.modeChange = this.modeChange.bind(this);
-    this.changeBackGround = this.changeBackGround.bind(this);
+    this.onChangeBackGround = this.onChangeBackGround.bind(this);
     this.cacheLoad = this.cacheLoad.bind(this);
     this.download_Chapter = this.download_Chapter.bind(this);
     this.sourceChoose = this.sourceChoose.bind(this);
+    this.renderPage = this.renderPage.bind(this);
+    this.renderContent = this.renderContent.bind(this);
 
     this.getMapAndLst(bookId);
 
@@ -184,8 +188,8 @@ class ReadScreen extends PureComponent {
     const Mode = await AsyncStorage.getItem('sunnyMode');
     if (Mode !== null) {
       this.setState({
-        sunnyMode: JSON.parse(Mode)
-      })
+        sunnyMode: JSON.parse(Mode),
+      });
     }
 
     this.chapterList = realm.objects('Chapter').filtered(`BookId = ${bookId}`).sorted(['ChapterId']);
@@ -198,6 +202,12 @@ class ReadScreen extends PureComponent {
       }
     } else {
       const { data, err } = await chapterList(bookId);
+      if (err) {
+        this.setState({
+          status: STATUS.FAILED,
+        });
+        return false;
+      }
       realm.write(() => {
         data.map(item => {
           realm.create('Chapter', {
@@ -215,28 +225,9 @@ class ReadScreen extends PureComponent {
     this.cacheLoad(this.recordNum + 1);
   }
 
-  async changeBackGround(index) {
-    switch (index) {
-      case 1:
-        this.backgroundColor = containerColors.zhuishuGreen;
-        break;
-      case 2:
-        this.backgroundColor = containerColors.qidianPink;
-        break;
-      case 3:
-        this.backgroundColor = containerColors.qidianRockYellow;
-        break;
-      case 4:
-        this.backgroundColor = containerColors.qidianwhite;
-        break;
-      case 5:
-        this.backgroundColor = containerColors.qidianX;
-        break;
-      case 6:
-        this.backgroundColor = containerColors.qidianY;
-        break;
-    }
-    await AsyncStorage.setItem('backgroundColor', this.backgroundColor);
+  async onChangeBackGround(BACKGROUND_COLOR) {
+    await AsyncStorage.setItem('backgroundColor', containerColors[BACKGROUND_COLOR.name]);
+    alert(JSON.stringify(await AsyncStorage.getItem('backgroundColor')))
     this.forceUpdate();
   }
 
@@ -271,7 +262,7 @@ class ReadScreen extends PureComponent {
       this.setState({
         currentItem: arr,
         goFlag: direct,
-        loadFlag: false,
+        status: STATUS.FINISH,
       });
     });
   }
@@ -279,7 +270,7 @@ class ReadScreen extends PureComponent {
   getContent(chapterId, index) {
     this.recordNum = index;
     this.setState({
-      loadFlag: true,
+      status: STATUS.LOADING,
     }, () => {
       this.fetchContent(chapterId, 1);
     });
@@ -314,8 +305,6 @@ class ReadScreen extends PureComponent {
       });
   }
 
-
-
   sourceChoose() {
     ActionSheetIOS.showActionSheetWithOptions({
       options: ['笔趣阁', '一百度', 'Cancel',],
@@ -345,7 +334,7 @@ class ReadScreen extends PureComponent {
 
     this.cacheLoad(this.recordNum + 1);
 
-    this.setState({ loadFlag: true }, () => {
+    this.setState({ status: STATUS.LOADING }, () => {
       this.fetchContent(chapterId, 1);
     });
   }
@@ -356,7 +345,7 @@ class ReadScreen extends PureComponent {
       return;
     }
     const chapterId = this.chapterList[--this.recordNum].ChapterId;
-    this.setState({ loadFlag: true }, () => {
+    this.setState({ status: STATUS.LOADING }, () => {
       this.fetchContent(chapterId, -1);
     });
   }
@@ -414,20 +403,36 @@ class ReadScreen extends PureComponent {
     );
   }
 
-  render() {
-    const ViewDs = new ViewPager.DataSource({ pageHasChanged: (p1, p2) => p1 !== p2 });
-    return (
-      <View style={this.styles.Container}>
-        <StatusBar
-          barStyle={'light-content'}
-          hidden={!this.state.isVisible}
-          animation={true} />
-        {this.state.loadFlag ? (
-          <Text style={[this.styles.centr, this.styles.TextColor]}>
-            Loading...</Text>) :
-          (<ViewPager
+  renderContent() {
+    const ds = new ViewPager.DataSource({ pageHasChanged: (p1, p2) => p1 !== p2 });
+    switch(this.state.status) {
+      case STATUS.READY:
+      case STATUS.LOADING:
+        return (
+          <Page
+            containerStyle={{backgroundColor: 'transparent'}}
+          >
+            <Text style={[this.styles.centr, this.styles.TextColor]}>
+              Loading...
+            </Text>
+          </Page>
+        );
+      case STATUS.FAILED:
+        return (
+          <Page
+          containerStyle={{backgroundColor: 'transparent'}}
+            onPress={this.clickBoard}
+          >
+            <Text style={[this.styles.centr, this.styles.TextColor]}>
+              加载失败！
+            </Text>
+          </Page>
+        );
+      case STATUS.FINISH:
+        return (
+          <ViewPager
             ref={'pager'}
-            dataSource={ViewDs.cloneWithPages(this.state.currentItem)}
+            dataSource={ds.cloneWithPages(this.state.currentItem)}
             renderPage={this.renderPage}
             getNextPage={this.getNextPage}
             getPrevPage={this.getPrevPage}
@@ -436,14 +441,30 @@ class ReadScreen extends PureComponent {
             initialPage={this.currentBook.LastChapterReadPage - 1}
             locked={this.state.isVisible}
             bodyComponents={this.bodyComponents}
-            Gpag={this.state.goFlag} />)}
+            Gpag={this.state.goFlag}
+          />
+        );
+      default:
+        throw `no status that named ${this.state.status} is allowed`;
+    }
+  }
+
+  render() {
+    return (
+      <View style={this.styles.Container}>
+        <StatusBar
+          barStyle={'light-content'}
+          hidden={!this.state.isVisible}
+          animation={true}
+        />
+        {this.renderContent()}
         <Toast ref="toast" />
         {this.state.isVisible && <BottomNav
           screenProps={this.props.screenProps}
           navigation={this.props.navigation}
           chapterList={this.chapterList}
           recordNum={this.recordNum}
-          changeBackGround={this.changeBackGround}
+          onChangeBackGround={this.onChangeBackGround}
           modeChange={this.modeChange}
           bookName={this.currentBook.BookName}
           getContent={this.getContent} />}
