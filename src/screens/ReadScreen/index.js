@@ -226,8 +226,8 @@ class ReadScreen extends PureComponent {
   }
 
   async onChangeBackGround(BACKGROUND_COLOR) {
-    await AsyncStorage.setItem('backgroundColor', containerColors[BACKGROUND_COLOR.name]);
-    alert(JSON.stringify(await AsyncStorage.getItem('backgroundColor')))
+    this.backgroundColor = containerColors[BACKGROUND_COLOR.name];
+    await AsyncStorage.setItem('backgroundColor', this.backgroundColor);
     this.forceUpdate();
   }
 
