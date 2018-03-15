@@ -72,7 +72,7 @@ class ReadScreen extends PureComponent {
           title='返回'
           tintColor={'#fff'}
           onPress={() => {
-            tht.refs.pager.clearcmp();
+            // tht.refs.pager.clearcmp();
             screenProps.router.goBack(navigation);
           }} />
       ),
@@ -149,6 +149,12 @@ class ReadScreen extends PureComponent {
 
   }
 
+  // componentWillMount() {
+  //   this.props.navigation.setParams({
+  //     clearcmp: this.refs.pager.clearcmp,
+  //   });
+  // }
+
   get styles() {
     if (this.currentstyle) {
       if (0 !== this.isChange) {
@@ -176,9 +182,9 @@ class ReadScreen extends PureComponent {
   async getMapAndLst(bookId) {
     const backgroundColor = await AsyncStorage.getItem('backgroundColor');
     this.sourceselect = await AsyncStorage.getItem('sourceselect');
-    if(this.sourceselect === null) {
+    if (this.sourceselect === null) {
       this.sourceselect = 'bqg';
-      await AsyncStorage.setItem('sourceselect',this.sourceselect);
+      await AsyncStorage.setItem('sourceselect', this.sourceselect);
     }
     if (backgroundColor !== null) {
       this.backgroundColor = backgroundColor;
@@ -248,7 +254,7 @@ class ReadScreen extends PureComponent {
     let data = this.chapterList[this.recordNum].Content;
 
     if (!data || data.length < 1) {
-      data = (await content(this.currentBook.BookId, chapterId,this.sourceselect)).data.content;
+      data = (await content(this.currentBook.BookId, chapterId, this.sourceselect)).data.content;
       realm.write(() => {
         this.chapterList[this.recordNum].Content = data;
         this.currentBook.LastChapter = this.chapterList[this.recordNum].Title;
@@ -321,7 +327,7 @@ class ReadScreen extends PureComponent {
             break;
           }
         }
-        AsyncStorage.setItem('sourceselect',this.sourceselect);
+        AsyncStorage.setItem('sourceselect', this.sourceselect);
       });
   }
 
@@ -405,12 +411,12 @@ class ReadScreen extends PureComponent {
 
   renderContent() {
     const ds = new ViewPager.DataSource({ pageHasChanged: (p1, p2) => p1 !== p2 });
-    switch(this.state.status) {
+    switch (this.state.status) {
       case STATUS.READY:
       case STATUS.LOADING:
         return (
           <Page
-            containerStyle={{backgroundColor: 'transparent'}}
+            containerStyle={{ backgroundColor: 'transparent' }}
           >
             <Text style={[this.styles.centr, this.styles.TextColor]}>
               Loading...
@@ -420,7 +426,7 @@ class ReadScreen extends PureComponent {
       case STATUS.FAILED:
         return (
           <Page
-          containerStyle={{backgroundColor: 'transparent'}}
+            containerStyle={{ backgroundColor: 'transparent' }}
             onPress={this.clickBoard}
           >
             <Text style={[this.styles.centr, this.styles.TextColor]}>
