@@ -1,33 +1,37 @@
 import rest, { GET, POST, PUT } from '../utils/rest';
+import buffer from 'buffer';
 
-const ServerIp = 'https://book.whatakitty.com';
+const serverIp = 'https://book.whatakitty.com';
+const version = 'v2';
+const prefix = `${serverIp}/api/${version}/books`;
 
-export async function list(key, pageIndex = 1) {
-  return await GET(ServerIp + '/api/v1/books', {
+const Buffer = buffer.Buffer;
+
+export async function list(key) {
+  return await GET(`${prefix}`, {
     key,
-    pageIndex,
   });
 }
 
 export async function history() {
-  return await GET(ServerIp + '/api/v1/history');
+  return await GET(`${serverIp}/api/${version}/history`);
 }
 
 export async function item(id) {
-  return await GET(ServerIp + `/api/v1/books/${id}`);
+  return await GET(`${prefix}/${id}`);
 }
 
-export async function content(bookId, chapterId, source = 'bqg') {
-  // console.log(`${bookId}   ${chapterId}`);
-  return await GET(ServerIp + `/api/v1/books/${source}/${bookId}/${chapterId}`);
+export async function content(link) {
+  const base64ed = new Buffer(link).toString('base64');
+  return await GET(`${prefix}/chapter/${base64ed.replace('/', 'xiegang')}`);
 }
 
-export async function chapterList(bookId, source = 'bqg') {
-  return await GET(ServerIp + `/api/v1/books/${source}/${bookId}/chapters`);// api/v1/books/bqg/1009265821/chapters
+export async function chapterList(bookId) {
+  return await GET(`${prefix}/${bookId}/chapters`);
 }
 
 export async function recommends() {
-  let { data, err } = await GET(ServerIp + '/api/v1/books/recommends');
+  let { data, err } = await GET(`${prefix}/recommends`);
   let books = [];
   if (!err) {
     for (let i = 0, j = data.Group.length; i < j; i++) {
@@ -38,7 +42,5 @@ export async function recommends() {
   }
 
   return { data, err };
-
-
 }
 

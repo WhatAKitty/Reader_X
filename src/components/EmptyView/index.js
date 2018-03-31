@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { Text, Image, View } from 'react-native';
-import { Col } from 'react-native-elements';
 import Icon from 'react-native-vector-icons/Ionicons';
 
 import styles from './index.style';
@@ -69,14 +68,14 @@ class EmptyView extends Component {
   render() {
     const { icon, tip, subTip } = this.props;
     return (
-      <Col style={styles.container}>
+      <View style={styles.container}>
         <View style={this.props.iconContainer}>
           {this.renderIcon(icon)}
         </View>
         <Text style={styles.tip}>{tip}</Text>
         {this.renderSubTip(subTip)}
         {this.props.footer}
-      </Col>
+      </View>
     )
   }
 }

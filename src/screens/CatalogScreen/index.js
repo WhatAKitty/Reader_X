@@ -1,22 +1,30 @@
 import React, { Component, PureComponent } from 'react';
-import { Text, View } from 'react-native';
+import PropTypes from 'prop-types';
+import { Text, View, VirtualizedList, Dimensions } from 'react-native';
 
-import { StackNavigator } from 'react-navigation';
+import { StackNavigator, HeaderBackButton } from 'react-navigation';
 import { Button, Divider, List, ListItem } from 'react-native-elements';
+import { iOSColors } from 'react-native-typography'
 
 import styles from './index.style';
 import { theme } from '../../theme';
 
-import RefreshFlatList from '../../components/RefreshFlatList';
-import { chapterList } from '../../services/book';
+const { height } = Dimensions.get('window');
 
-let tht;
-
-class CatalogScreen extends PureComponent {
+class CatalogScreen extends Component {
   static navigationOptions = ({ navigation, screenProps }) => {
-    let toEnd = true;
+    const { bookName, onScrollToTop } = navigation.state.params;
     return {
-      title: `${navigation.state.params.bookName}`,
+      title: `${bookName}`,
+      headerLeft: (
+        <HeaderBackButton
+          title=''
+          tintColor={'#fff'}
+          onPress={() => {
+            navigation.goBack();
+          }}
+        />
+      ),
       headerRight: (
         <View style={styles.navRightContainer}>
           <Button
@@ -24,54 +32,22 @@ class CatalogScreen extends PureComponent {
             color={'#fff'}
             title='顶底直达'
             fontSize={16}
-            onPress={() => {
-              let flatLst = tht.refs.lst1.refs.lst2;
-              toEnd ? flatLst.scrollToEnd() : flatLst.scrollToIndex({ viewPosition: 0.5, index: 0 });
-              toEnd = !toEnd;
-
-
-            }}
+            onPress={onScrollToTop}
           />
         </View>
       ),
       tabBarVisible: false,
     };
   }
-  constructor(props) {
-    super(props);
-    tht = this;
-    // console.log(this.props.navigation.state.params.bookNum);
-
-    this.currentChapterIndex = this.props.navigation.state.params.bookNum || 0;
-
-    this.state = {
-      bookList: [],
-      fetchFlag: 0,
-    };
-
-    this.props.navigation.state.params.that = this;
-
-    this.renderSeparator = this.renderSeparator.bind(this);
-    this.onHeaderRefresh = this.onHeaderRefresh.bind(this);
-    this.renderRow = this.renderRow.bind(this);
-  }
 
   componentDidMount() {
-    let data = this.props.navigation.state.params.chapterList;
-    this.setState({
-      bookList: data,
-    });
-    setTimeout(() => {
-      tht.refs.lst1.refs.lst2.scrollToIndex({ viewPosition: 0.5, index: this.currentChapterIndex });
-    }, 250);
-  }
-
-  async fetchChapterLst(bookId, direct) {
-    const { err, data } = await chapterList(bookId);
-    this.setState({
-      bookList: data,
-    });
-
+    this.props.navigation.setParams({
+      onScrollToTop: () => {
+        this.refs.chapterList.scrollToIndex({
+          index: 0,
+        });
+      },
+    })
   }
 
   renderSeparator() {
@@ -82,21 +58,19 @@ class CatalogScreen extends PureComponent {
     );
   }
 
-  onHeaderRefresh() {
-    return;
-  }
+  renderRow({ item, index, separators }) {
+    if (item.unreadable) {
+      return false;
+    }
 
-  renderRow(item) {
-    const itemColor = item.index === this.currentChapterIndex ? styles.Catalogcolors.selectedColor : (item.item.isDownload ? styles.Catalogcolors.loadedChapterColor : styles.Catalogcolors.noLoadChapterColor);
+    const chapterIndex = this.props.navigation.state.params.chapterIndex;
+    const itemColor = index === chapterIndex ? { color: iOSColors.red } : {};
     return (
       <ListItem
-        key={item.item.chapterId}
+        key={index}
         hideChevron={true}
-        title={item.item.Title}
-        onPress = {()=>{
-          this.props.navigation.state.params.callback(item.item.ChapterId,item.index);
-          this.props.screenProps.router.goBack(this.props.navigation);
-        }}
+        title={item.title}
+        onPress={() => this._onChapterClicked(index, item)}
         titleStyle={[itemColor, { fontSize: 15 }]}
         containerStyle={styles.itemContainerStyle}
       />
@@ -104,21 +78,33 @@ class CatalogScreen extends PureComponent {
   }
 
   render() {
+    const { chapterList: data, chapterIndex = 0 } = this.props.navigation.state.params;
     return (
-      <List style={{ flex: 1, marginTop: 0 }} >
-        <RefreshFlatList
-          style={{ backgroundColor: '#eeeeee' }}
-          ref={'lst1'}
-          listRef={'lst2'}
-          data={this.state.bookList}
-          renderItem={this.renderRow}
+      <List containerStyle={{ marginTop: 0 }} >
+        <VirtualizedList
+          ref="chapterList"
+          style={{ backgroundColor: '#eeeeee', padding: 0, margin: 0 }}
+          data={data}
+          initialScrollIndex={chapterIndex}
+          initialNumToRender={30}
+          renderItem={this.renderRow.bind(this)}
           ItemSeparatorComponent={this.renderSeparator}
-          keyExtractor={(item, index) => `${item.ChapterId}`}
-          refreshState={this.state.fetchFlag}
-          getItemLayout={(data, index) => ({ length: 50, offset: 51 * index, index })}//行高38，分割线1，所以offset=39
-          onHeaderRefresh={this.onHeaderRefresh} />
+          keyExtractor={(item, index) => `${index}`}
+          getItemLayout={(data, index) => ({
+            length: 50,
+            offset: 51 * index,
+            index,
+          })}
+          getItem={(data, index) => data[index]}
+          getItemCount={data => data.length}
+        />
       </List>
     );
+  }
+
+  _onChapterClicked = (index, item) => {
+    this.props.navigation.state.params.onChapterClicked(index, item);
+    this.props.navigation.goBack();
   }
 }
 

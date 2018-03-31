@@ -27,24 +27,9 @@ import { theme } from '../theme';
 
 const options = (props) => {
   const { navigation, navigationOptions, screenProps } = props;
-  if (screenProps.router.first) {
-    return {
-      headerStyle: theme.styles.navContainer,
-      headerTitleStyle: theme.styles.navTitle,
-    };
-  }
   return {
     headerStyle: theme.styles.navContainer,
     headerTitleStyle: theme.styles.navTitle,
-    headerLeft: (
-      <HeaderBackButton
-        title='返回'
-        tintColor={theme.styles.navButton.color}
-        onPress={() => {
-          screenProps.router.goBack(navigation);
-        }}
-      />
-    ),
   };
 };
 
@@ -109,7 +94,7 @@ const MainNavigator = StackNavigator({
   },
   Search: {
     screen: SearchScreen,
-  }
+  },
 }, {
   mode: 'screen',
   headerMode: 'screen',
@@ -117,28 +102,4 @@ const MainNavigator = StackNavigator({
   initialRouteName: 'Home',
 });
 
-const MainScreen = (props) => {
-  return (
-    <MainNavigator 
-      screenProps={{
-        ...props.screenProps,
-        router: new Router(),
-      }}
-    />
-  );
-};
-
-const TopNavigator = StackNavigator({
-  Main: {
-    screen: MainScreen,
-  },
-}, {
-  mode: 'modal',
-  headerMode: 'none',
-  navigationOptions: {
-    gesturesEnabled: false,
-  },
-  initialRouteName: 'Main',
-});
-
-export default TopNavigator;
+export default MainNavigator;

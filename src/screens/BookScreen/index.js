@@ -9,9 +9,10 @@ import {
   TouchableWithoutFeedback,
 } from 'react-native';
 
-import { NavigationActions } from 'react-navigation';
+import { NavigationActions, HeaderBackButton } from 'react-navigation';
 import { Icon, Button, Rating, Divider, Avatar, ButtonGroup } from 'react-native-elements';
 import { ParallaxView } from 'react-native-pin-parallax-view';
+import { ifIphoneX } from 'react-native-iphone-x-helper';
 
 import Page from '../../components/Page';
 import RefreshFlatList, { RefreshState } from '../../components/RefreshFlatList';
@@ -55,6 +56,9 @@ function fixedRound(number, fixed, type = 0) {
 }
 
 const formatNumber = (number, fixed = 0, unit = true, type = 0) => {
+  if ('undefined' === typeof number) {
+    return '0';
+  }
   if (number >= 10000) {
     return `${fixedRound(number / 10000, fixed, type)}${unit ? '万' : ''}`;
   }
@@ -75,6 +79,15 @@ class BookScreen extends Component {
         right: 0,
         borderBottomWidth: 0,
       },
+      headerLeft: (
+        <HeaderBackButton
+          title='返回'
+          tintColor={'#fff'}
+          onPress={() => {
+            navigation.goBack(null);
+          }}
+        />
+      ),
       headerRight: (
         <View style={theme.styles.navRightContainer}>
           <Icon
@@ -96,54 +109,10 @@ class BookScreen extends Component {
     this.state = {
       book: {},
     };
-
-    this.onFetch = this.onFetch.bind(this);
-    this.onScrollOverTitle = this.onScrollOverTitle.bind(this);
-    this.renderListStyleItem = this.renderListStyleItem.bind(this);
-    this.renderBookInfo = this.renderBookInfo.bind(this);
-    this.renderBookStatistics = this.renderBookStatistics.bind(this);
-    this.renderBookStatisticsItem = this.renderBookStatisticsItem.bind(this);
-    this.renderBookDetail = this.renderBookDetail.bind(this);
-    this.renderBookHonor = this.renderBookHonor.bind(this);
-    this.renderCommmentList = this.renderCommmentList.bind(this);
-    this.renderBookComment = this.renderBookComment.bind(this);
-    this.renderAuthorBooks = this.renderAuthorBooks.bind(this);
-    this.renderAuthorInfo = this.renderAuthorInfo.bind(this);
-
-    this.renderToolbar = this.renderToolbar.bind(this);
-    this.renderToolbarButton = this.renderToolbarButton.bind(this);
   }
 
   componentDidMount() {
-    this.onFetch();
-  }
-
-  async onFetch() {
-    const { err, data } = await item(this.props.navigation.state.params.BookId);
-    if (err) {
-      return;
-    }
-    if (!data) {
-      return;
-    }
-
-    this.setState({
-      book: data,
-    });
-  }
-
-  onScrollOverTitle(y) {
-    if (!this.overed && y >= 35) {
-      this.overed = true;
-      this.props.navigation.setParams({
-        title: this.state.book.BookName,
-      });
-    } else if (this.overed && y < 35) {
-      this.overed = false;
-      this.props.navigation.setParams({
-        title: '',
-      });
-    }
+    this._onFetch();
   }
 
   renderListStyleItem(item, onPress) {
@@ -170,16 +139,16 @@ class BookScreen extends Component {
   renderBookInfo(book) {
     return (
       <View style={styles.info.container}>
-        <Image source={{ uri: `https://qidian.qpic.cn/qdbimg/349573/${book.BookId}/180` }} style={styles.info.preview} />
+        <Image source={{ uri: book.cover }} style={styles.info.preview} />
         <View style={styles.info.text.container}>
-          <Text style={styles.info.text.title}>{book.BookName ? book.BookName : '--'}</Text>
-          <Text style={styles.info.text.author}>{book.Author ? book.Author : '--'}</Text>
+          <Text style={styles.info.text.title}>{book.title ? book.title : '--'}</Text>
+          <Text style={styles.info.text.author}>{book.author ? book.author : '--'}</Text>
           <View style={[styles.info.text.inline]}>
-            <Rating style={styles.info.text.rating} ratingCount={5} startingValue={+book.BookStar} readonly={true} imageSize={theme.styles.variables.size.md} />
-            <Text style={styles.info.text.others}>{book.BssReadTotal ? `${formatNumber(book.BssReadTotal)}人读过` : ''}</Text>
+            <Rating style={styles.info.text.rating} ratingCount={10} startingValue={+book.score} readonly={true} imageSize={theme.styles.variables.size.md} />
+            <Text style={styles.info.text.others}>{book.latelyFollower ? `${formatNumber(book.latelyFollower)}人读过` : ''}</Text>
           </View>
-          <Text style={styles.info.text.others}>{book.CategoryName && book.SubCategoryName ? `${book.CategoryName} | ${book.SubCategoryName}` : '--'}</Text>
-          <Text style={styles.info.text.others}>{book.WordsCnt && book.BookStatus ? `${formatNumber(book.WordsCnt, 1)}字 | ${book.BookStatus}` : '--'}</Text>
+          <Text style={styles.info.text.others}>{book.majorCate && book.minorCate ? `${book.majorCate} | ${book.minorCate}` : '--'}</Text>
+          <Text style={styles.info.text.others}>{book.wordCount && 'undefiend' !== typeof book.isSerial ? `${formatNumber(book.wordCount, 1)}字 | ${book.isSerial ? '连载中' : '已完结'}` : '--'}</Text>
         </View>
       </View>
     );
@@ -200,18 +169,18 @@ class BookScreen extends Component {
   renderBookStatistics(book) {
     const statistics = [{
       label: '月票',
-      number: book.MonthTicketCount,
+      number: 0,
     }, {
       label: '推荐',
-      number: formatNumber(book.RecommendAll, 0, false),
+      number: formatNumber(book.postCount, 0, false),
       unit: '万'
     }, {
       label: '打赏',
-      number: formatNumber(book.DonateCount, 1, false),
+      number: formatNumber(book.followerCount, 1, false),
       unit: '万次',
     }, {
       label: '粉丝',
-      number: formatNumber(book.BookFansCount, 1, false, 1),
+      number: formatNumber(book.latelyFollower, 1, false, 1),
       unit: '万+',
     }];
     return (
@@ -226,19 +195,20 @@ class BookScreen extends Component {
       <View style={styles.detail.container}>
         <View style={styles.detail.description.container}>
           <Text style={styles.detail.description.title}>简介</Text>
-          <Text style={styles.detail.description.text}>{book.Description ? book.Description : '--'}</Text>
+          <Text style={styles.detail.description.text}>{book.longIntro ? book.longIntro : '--'}</Text>
         </View>
-        {this.renderListStyleItem({ label: '目录', value: `连载至 ${book.TotalChapterCount} 章` })}
+        {this.renderListStyleItem({ label: '目录', value: `连载至 ${book.chaptersCount} 章` })}
       </View>
     );
   }
 
   renderBookHonor(book) {
-    return (
-      <View style={styles.honor.container}>
-        {this.renderListStyleItem({ label: '作品荣誉', value: `${book.BookHonor && book.BookHonor.length ? book.BookHonor[0].Honors : ''}` })}
-      </View>
-    );
+    // return (
+    //   <View style={styles.honor.container}>
+    //     {this.renderListStyleItem({ label: '作品荣誉', value: `${book.BookHonor && book.BookHonor.length ? book.BookHonor[0].Honors : ''}` })}
+    //   </View>
+    // );
+    return false;
   }
 
   renderCommmentList(list) {
@@ -253,14 +223,15 @@ class BookScreen extends Component {
   }
 
   renderBookComment(book) {
-    return (
-      <View style={styles.area.container}>
-        {this.renderListStyleItem({ label: '书评', value: `${book.BookForumCount ? `${formatNumber(book.BookForumCount, 0, true, 1)}+` : ''}` }, () => {
-          this.props.screenProps.router.navigate(this.props.navigation, 'Forum');
-        })}
-        {this.renderCommmentList(book.BookReviewList)}
-      </View>
-    );
+    // return (
+    //   <View style={styles.area.container}>
+    //     {this.renderListStyleItem({ label: '书评', value: `${book.BookForumCount ? `${formatNumber(book.BookForumCount, 0, true, 1)}+` : ''}` }, () => {
+    //       this.props.screenProps.router.navigate(this.props.navigation, 'Forum');
+    //     })}
+    //     {this.renderCommmentList(book.BookReviewList)}
+    //   </View>
+    // );
+    return false;
   }
 
   renderAuthorBooks(books) {
@@ -270,17 +241,19 @@ class BookScreen extends Component {
           books.map(book => {
             return (
               <TouchableWithoutFeedback
-                key={book.BookId}
+                key={book._id}
                 onPress={() => {
-                  this.props.screenProps.router.navigate(this.props.navigation, 'Book', item, NavigationActions.navigate({ routeName: 'Info', params: item }));
+                  this.props.navigation.navigate('Book', book, NavigationActions.navigate({ routeName: 'Info', params: {
+                    BookId: book._id,
+                  } }));
                 }}
               >
                 <View style={styles.author.books.book.container}>
-                  <Image style={styles.author.books.book.preview} source={{ uri: `https://qidian.qpic.cn/qdbimg/349573/${book.BookId}/180` }} />
+                  <Image style={styles.author.books.book.preview} source={{ uri: book.cover }} />
                   <View style={styles.author.books.book.titleWrapper}>
-                    <Text style={styles.author.books.book.title}>{book.BookName}</Text>
+                    <Text style={styles.author.books.book.title}>{book.title}</Text>
                   </View>
-                  <Text style={styles.author.books.book.readers}>{`${formatNumber(book.BssReadTotal, 1, true, 1)}人...`}</Text>
+                  <Text style={styles.author.books.book.readers}>{`${formatNumber(book.latelyFollower, 1, true, 1)}人...`}</Text>
                 </View>
               </TouchableWithoutFeedback>
             );
@@ -291,7 +264,7 @@ class BookScreen extends Component {
   }
 
   renderAuthorInfo(book) {
-    const { AuthorInfo: author = {}, AuthorRecommend: authorBooks = [] } = book;
+    const { author, authorBooks = [] } = book;
     return (
       <View style={styles.area.container}>
         {this.renderListStyleItem({ label: '作家', value: '' })}
@@ -300,11 +273,11 @@ class BookScreen extends Component {
             <Avatar
               medium
               rounded
-              source={{ uri: author.RealImageUrl }}
+              title="A"
             />
             <View style={styles.author.info.textContainer}>
-              <Text style={styles.author.info.name}>{author.AuthorName}</Text>
-              <Text style={styles.author.info.info}>{author.AuthorDesc}</Text>
+              <Text style={styles.author.info.name}>{author}</Text>
+              <Text style={styles.author.info.info}></Text>
             </View>
           </View>
           {this.renderAuthorBooks(authorBooks)}
@@ -334,20 +307,22 @@ class BookScreen extends Component {
         onPress={(selectIndex) => {
           if (selectIndex === 1) {
             // 立即阅读
-            this.props.screenProps.router.navigate(this.props.navigation, 'Book', book, NavigationActions.navigate({ routeName: 'Read', params: book }));
+            this.props.navigation.navigate('Book', book, NavigationActions.navigate({ routeName: 'Read', params: {
+              book,
+            } }));
           } else if (selectIndex === 2) {
             // 加入书架
             requestAnimationFrame(() => {
-              const alreadyIn = realm.objectForPrimaryKey('Shelf', book.BookId);
+              const alreadyIn = realm.objectForPrimaryKey('Shelf', book._id);
               if (alreadyIn) return false;
 
               // TODO, 如果加入的书籍本身已经被阅读过，则直接提取阅读记录存储到书架内
               const appendTime = new Date().getTime();
               realm.write(() => {
                 realm.create('Shelf', {
-                  ...book,
-                  Progress: 0,
-                  LastAppendTime: appendTime,
+                  book,
+                  bookId: book._id,
+                  lastAppendTime: appendTime,
                 });
               });
             });
@@ -370,24 +345,52 @@ class BookScreen extends Component {
           style={styles.parallax}
           scrollableViewStyle={styles.scrollview}
           onScroll={(e) => {
-            this.onScrollOverTitle(e.nativeEvent.contentOffset.y);
+            this._onScrollOverTitle(e.nativeEvent.contentOffset.y);
           }}
           light='light'
           scrollEventThrottle={3}
-          backgroundSource={{ uri: 'https://img6.bdstatic.com/img/image/public/bizhi112.png' }}
+          backgroundSource={require('../../assets/bookBack.png')}
           header={this.renderBookInfo(book)}
           windowHeight={styles.info.container.height}
-          backgroundHeight={styles.info.container.height + 60}
+          backgroundHeight={styles.info.container.height + ifIphoneX(80, 60)}
         >
           {this.renderBookStatistics(book)}
           {this.renderBookDetail(book)}
-          {this.renderBookHonor(book)}
-          {this.renderBookComment(book)}
+          {/* {this.renderBookHonor(book)}
+          {this.renderBookComment(book)} */}
           {this.renderAuthorInfo(book)}
         </ParallaxView>
         {this.renderToolbar(book)}
       </Page>
     );
+  }
+
+  _onFetch = async () => {
+    const { err, data } = await item(this.props.navigation.state.params.BookId);
+    if (err) {
+      return;
+    }
+    if (!data) {
+      return;
+    }
+
+    this.setState({
+      book: data,
+    });
+  }
+
+  _onScrollOverTitle = (y) => {
+    if (!this.overed && y >= 35) {
+      this.overed = true;
+      this.props.navigation.setParams({
+        title: this.state.book.title,
+      });
+    } else if (this.overed && y < 35) {
+      this.overed = false;
+      this.props.navigation.setParams({
+        title: '',
+      });
+    }
   }
 }
 

@@ -47,7 +47,7 @@ class RecommandScreen extends Component {
           booklist={this.state.result}
           ListFooterComponent={this.renderFooter}
           onItemClicked={(item, index) => {
-            this.props.screenProps.router.navigate(this.props.navigation, 'Book', item, NavigationActions.navigate({ routeName: 'Info', params: item }));
+            this.props.navigation.navigate('Book', item, NavigationActions.navigate({ routeName: 'Info', params: item }));
           }}
           datasource={recommends}
         />

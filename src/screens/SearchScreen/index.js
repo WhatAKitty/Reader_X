@@ -33,8 +33,8 @@ class SearchX extends Component {
           inputStyle={{ backgroundColor: '#fff' }}
           icon={{ color: '#86939e', name: 'search' }}
           autoCorrect={false}
-          returnKeyType='search'
-          placeholder='输入关键字'
+          returnKeyType="search"
+          placeholder="输入关键字"
           showLoadingIcon={this.props.loading}
 
           onChangeText={(text) => this.setState({ text })}
@@ -43,12 +43,12 @@ class SearchX extends Component {
           }}
         />
         <Button style={{ flex: 1, width: 20, justifyContent: 'center', marginLeft: 12, alignItems: 'center' }}
-          title='取消'
+          title="取消"
           containerViewStyle={theme.styles.navContainer}
           buttonStyle={{ backgroundColor: 'transparent' }}
 
           onPress={() => {
-            this.props.screenProps.router.goBack(this.props.navigation);
+            this.props.navigation.goBack();
           }}
         />
       </View>
@@ -127,14 +127,17 @@ class SearchScreen extends PureComponent {
           loading={this.state.loading}
         />
         <BookList
-          keyExtractor={(item, index) => item.BookId}
+          keyExtractor={(item, index) => `${item._id}`}
           dynamic={false}
           type={BookListType.Complete}
           booklist={this.state.result}
           ListFooterComponent={this.renderFooter}
 
           onItemClicked={(item, index) => {
-            this.props.screenProps.router.navigate(this.props.navigation, 'Book', item, NavigationActions.navigate({ routeName: 'Info', params: item }));
+            this.props.navigation.navigate('Book', item, NavigationActions.navigate({ routeName: 'Info', params: {
+              BookId: item._id,
+              bookName: item.title,
+            } }));
           }}
           onEndReached={() => {
             this.state.pageIndex > 1 && this.fetchData(this.state.searchText, this.state.pageIndex);

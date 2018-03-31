@@ -1,481 +1,457 @@
-import React, { Component, PureComponent } from 'react';
-import { StyleSheet, Text, View, Dimensions, StatusBar, ActionSheetIOS, AsyncStorage, LayoutAnimation } from 'react-native';
+import React, { Component, PureComponent, Fragment } from 'react';
+import PropTypes from 'prop-types';
+import {
+  Animated,
+  StyleSheet,
+  Text,
+  View,
+  Dimensions,
+  StatusBar,
+  ActionSheetIOS,
+  AsyncStorage,
+  LayoutAnimation,
+  TouchableWithoutFeedback
+} from 'react-native';
 
 import { Icon, Button } from 'react-native-elements';
-import Toast from 'react-native-easy-toast';
-import dateFormat from 'dateformat';
 import { HeaderBackButton } from 'react-navigation';
-import async from 'async';
+import { Pages } from '../../components/ReactNativePages';
+import { iOSUIKitTall, iOSColors } from 'react-native-typography'
 
-import ViewPager from '../../components/ViewPager';
-import getContextArr from '../../utils/getContextArr';
-import BottomNav from '../../components/BottomNav';
+import BottomNav from './BottomNav';
 import Page from '../../components/Page';
+import EmptyView from '../../components/EmptyView';
 
 import { content, chapterList } from '../../services/book';
 import realm, { SortDescriptor } from '../../models';
-import { mergeDeep } from '../../utils/object';
 import constants from '../../utils/constants';
 
-import styles, { containerColors } from './index.style';
+import styles from './index.style';
+import { getTheme, moonTheme, defaultTheme } from './ReaderTheme.style';
 
 const { STATUS } = constants;
-const width = styles.common.width;
-const height = styles.common.height;
-
-let tht;
-
-let q = async.queue(function (num, callback) {
-  loadX(num, () => {
-    callback(null);
-  })
-}, 5);
-
-q.drain = function () {
-  tht.refs.toast.show(`Task finished process:${successTask}/${allTask}`);
-  successTask = 0;
-};
-
-async function loadX(num, callback) {
-  try {
-    await tht.cacheLoad(num);
-    successTask++;
-  } catch (err) {
-
-  } finally {
-    callback()
-  }
-};
-
-let allTask = 0, successTask = 0;
-
-
 
 class ReadScreen extends PureComponent {
   static navigationOptions = ({ navigation, screenProps }) => {
-    let showHeader = navigation.state.params.showHeader ? {} : { header: null };
+    let barShow = navigation.state.params.barShow ? {} : { header: null };
     return {
+      ...barShow,
       title: '',
-      headerStyle: {
-        position: 'absolute',
-        backgroundColor: '#000',
-        zIndex: 100,
-        top: 0,
-        left: 0,
-        right: 0,
-        borderBottomWidth: 0,
-        opacity: 0.75
-      },
-      ...showHeader,
+      headerStyle: styles.header.self,
       headerLeft: (
         <HeaderBackButton
           title='返回'
           tintColor={'#fff'}
           onPress={() => {
-            // tht.refs.pager.clearcmp();
-            screenProps.router.goBack(navigation);
-          }} />
+            navigation.goBack(null);
+          }}
+        />
       ),
       headerRight: (
-        <View style={styles.common.navRightContainer}>
-          <Icon
-            containerStyle={styles.common.navButtonContainer}
-            name='arrow-downward'
-            type='MaterialIcons'
-            color={styles.common.navButton.color}
-            underlayColor={styles.common.navButton.underlayColor}
-            onPress={() => { tht.downChoose(); }}
-          />
-          <Icon
-            containerStyle={styles.common.navButtonContainer}
-            name='bubble-chart'//
-            type='MaterialIcons'
-            color={styles.common.navButton.color}
-            underlayColor={styles.common.navButton.underlayColor}
-            onPress={() => { tht.sourceChoose(); }}
-          />
-          <Icon
-            containerStyle={styles.common.navButtonContainer}
-            name='more-horiz'//bubble-chart
-            type='MaterialIcons'
-            color={styles.common.navButton.color}
-            underlayColor={styles.common.navButton.underlayColor}
-            onPress={() => { }}
-          />
-        </View>
+        // <View style={styles.common.navRightContainer}>
+        //   <Icon
+        //     containerStyle={styles.common.navButtonContainer}
+        //     name='arrow-downward'
+        //     type='MaterialIcons'
+        //     color={styles.common.navButton.color}
+        //     underlayColor={styles.common.navButton.underlayColor}
+        //     onPress={() => { tht.downChoose(); }}
+        //   />
+        //   <Icon
+        //     containerStyle={styles.common.navButtonContainer}
+        //     name='bubble-chart'//
+        //     type='MaterialIcons'
+        //     color={styles.common.navButton.color}
+        //     underlayColor={styles.common.navButton.underlayColor}
+        //     onPress={() => { tht.sourceChoose(); }}
+        //   />
+        //   <Icon
+        //     containerStyle={styles.common.navButtonContainer}
+        //     name='more-horiz'//bubble-chart
+        //     type='MaterialIcons'
+        //     color={styles.common.navButton.color}
+        //     underlayColor={styles.common.navButton.underlayColor}
+        //     onPress={() => { }}
+        //   />
+        // </View>
+        <View></View>
       ),
       tabBarVisible: false,
     };
   }
-  constructor(props) {
-    super(props);
 
-    const bookId = props.navigation.state.params.BookId;
-    this.currentBook = realm.objects('Shelf').filtered(`BookId = ${bookId}`)[0];
-    this.totalPage = 1;
-    this.chapterList;
-    this.recordNum = 0;
-    this.backgroundColor = containerColors.zhuishuGreen;
-    this.isChange = 0;
+  state = {
+    status: STATUS.READY,
+    chapters: [],
+    chapterTitle: '加载中',
+    chapterPages: [],
+    chapterPageIndex: 0,
+    currentChapter: 0,
+    nextChapter: null,
+    prevChapter: null,
+    progress: 0,
+    chapterStyles: {},
+    barShow: false,
+    theme: null,
+  };
 
-    this.sourceselect = 'bqg';
-
-    this.state = {
-      status: STATUS.READY,     // 准备状态
-      currentItem: '', //作为章节内容的主要获取来源。
-      isVisible: false, //判断导航栏是否应该隐藏
-      goFlag: 0, //判断是前往上一章（-1）还是下一章（1）
-      sunnyMode: true,
-    };
-
-    tht = this;
-
-    this.getNextPage = this.getNextPage.bind(this);
-    this.getPrevPage = this.getPrevPage.bind(this);
-    this.getCurrentPage = this.getCurrentPage.bind(this);
-    this.clickBoard = this.clickBoard.bind(this);
-    this.downChoose = this.downChoose.bind(this);
-    this.getContent = this.getContent.bind(this);
-    this.getMapAndLst = this.getMapAndLst.bind(this);
-    this.modeChange = this.modeChange.bind(this);
-    this.onChangeBackGround = this.onChangeBackGround.bind(this);
-    this.cacheLoad = this.cacheLoad.bind(this);
-    this.download_Chapter = this.download_Chapter.bind(this);
-    this.sourceChoose = this.sourceChoose.bind(this);
-    this.renderPage = this.renderPage.bind(this);
-    this.renderContent = this.renderContent.bind(this);
-
-    this.getMapAndLst(bookId);
-
+  componentDidMount() {
+    this._init();
   }
 
-  // componentWillMount() {
-  //   this.props.navigation.setParams({
-  //     clearcmp: this.refs.pager.clearcmp,
-  //   });
-  // }
-
-  get styles() {
-    if (this.currentstyle) {
-      if (0 !== this.isChange) {
-        return this.currentstyle;
-      }
-      this.isChange = 0;
-    }
-
-    if (this.state.sunnyMode) {
-      const container = {
-        Container: {
-          flex: 1,
-          backgroundColor: this.backgroundColor,
-        }
-      };
-
-      return (this.currentstyle = mergeDeep({}, styles.common, styles.sunnyMode, container));
-    } else {
-      return (this.currentstyle = mergeDeep({}, styles.common, styles.moonMode));
-    }
-  }
-
-  //region
-
-  async getMapAndLst(bookId) {
-    const backgroundColor = await AsyncStorage.getItem('backgroundColor');
-    this.sourceselect = await AsyncStorage.getItem('sourceselect');
-    if (this.sourceselect === null) {
-      this.sourceselect = 'bqg';
-      await AsyncStorage.setItem('sourceselect', this.sourceselect);
-    }
-    if (backgroundColor !== null) {
-      this.backgroundColor = backgroundColor;
-    } else {
-      AsyncStorage.setItem('backgroundColor', this.backgroundColor);
-    }
-    const Mode = await AsyncStorage.getItem('sunnyMode');
-    if (Mode !== null) {
-      this.setState({
-        sunnyMode: JSON.parse(Mode),
-      });
-    }
-
-    this.chapterList = realm.objects('Chapter').filtered(`BookId = ${bookId}`).sorted(['ChapterId']);
-    if (this.chapterList && this.chapterList.length > 0) {
-      for (let i = 0, j = this.chapterList.length; i < j; i++) { // 如果都不等，recordNum 默认等于0，从头开始。
-        if (this.chapterList[i].Title === this.currentBook.LastChapter) {
-          this.recordNum = i;
-          break;
-        }
-      }
-    } else {
-      const { data, err } = await chapterList(bookId);
-      if (err) {
-        this.setState({
-          status: STATUS.FAILED,
-        });
-        return false;
-      }
-      realm.write(() => {
-        data.map(item => {
-          realm.create('Chapter', {
-            BookId: bookId,
-            ChapterId: +item.chapterId,
-            Title: item.title,
-            Content: null,
-          });
-        });
-      });
-      this.chapterList = realm.objects('Chapter').filtered(`BookId = ${bookId}`).sorted(['ChapterId']);
-    }
-
-    await this.fetchContent(this.chapterList[this.recordNum].ChapterId, 0);
-    this.cacheLoad(this.recordNum + 1);
-  }
-
-  async onChangeBackGround(BACKGROUND_COLOR) {
-    this.backgroundColor = containerColors[BACKGROUND_COLOR.name];
-    await AsyncStorage.setItem('backgroundColor', this.backgroundColor);
-    this.forceUpdate();
-  }
-
-  async cacheLoad(num) {
-    let data = this.chapterList[num].Content;
-    if (!data || data.length < 1) {
-      // this.refs.toast.show('开始预缓存');
-      data = (await content(this.currentBook.BookId, this.chapterList[num].ChapterId)).data.content;
-      realm.write(() => {
-        this.chapterList[num].Content = data;
-      });
-    } else {
-      // this.refs.toast.show(`下章[ ${num} ]已经有缓存了！`);
-    }
-  }
-
-  async fetchContent(chapterId, direct) {
-    let data = this.chapterList[this.recordNum].Content;
-
-    if (!data || data.length < 1) {
-      data = (await content(this.currentBook.BookId, chapterId, this.sourceselect)).data.content;
-      realm.write(() => {
-        this.chapterList[this.recordNum].Content = data;
-        this.currentBook.LastChapter = this.chapterList[this.recordNum].Title;
-      });
-
-    }
-    let arr = getContextArr(data, width, height, 23);//23 是字体大小
-    this.totalPage = arr.length;
-
-    requestAnimationFrame(() => {//修复与realm的冲突
-      this.setState({
-        currentItem: arr,
-        goFlag: direct,
-        status: STATUS.FINISH,
-      });
-    });
-  }
-
-  getContent(chapterId, index) {
-    this.recordNum = index;
-    this.setState({
-      status: STATUS.LOADING,
-    }, () => {
-      this.fetchContent(chapterId, 1);
-    });
-  }
-
-  download_Chapter(num) {
-    let length = this.chapterList.length;
-    const wantNum = this.recordNum + num;
-    let end = wantNum > length ? length : wantNum;
-    allTask = end - this.recordNum - 1;
-    for (let i = this.recordNum + 1; i < end; i++) {
-      q.push(i);
-    }
-  }
-
-  downChoose() {
-    ActionSheetIOS.showActionSheetWithOptions({
-      options: ['缓存50章', '缓存150章', 'Cancel',],
-      cancelButtonIndex: 2,
-    },
-      (buttonIndex) => {
-        switch (buttonIndex) {
-          case 0: {//50章
-            this.download_Chapter(50);
-            break;
-          }
-          case 1: {//150章
-            this.download_Chapter(150);
-            break;
-          }
-        }
-      });
-  }
-
-  sourceChoose() {
-    ActionSheetIOS.showActionSheetWithOptions({
-      options: ['笔趣阁', '一百度', 'Cancel',],
-      cancelButtonIndex: 2,
-    },
-      (buttonIndex) => {
-        switch (buttonIndex) {
-          case 0: {//50章
-            this.sourceselect = 'bqg';
-            break;
-          }
-          case 1: {//150章
-            this.sourceselect = 'ybdu';
-            break;
-          }
-        }
-        AsyncStorage.setItem('sourceselect', this.sourceselect);
-      });
-  }
-
-  getNextPage() {
-    if (this.recordNum >= this.chapterList.length - 1) {
-      this.refs.toast.show('到最后一页了...');
-      return;
-    }
-    const chapterId = this.chapterList[++this.recordNum].ChapterId;
-
-    this.cacheLoad(this.recordNum + 1);
-
-    this.setState({ status: STATUS.LOADING }, () => {
-      this.fetchContent(chapterId, 1);
-    });
-  }
-
-  getPrevPage() {
-    if (this.recordNum <= 0) {
-      this.refs.toast.show('到第一页了...');
-      return;
-    }
-    const chapterId = this.chapterList[--this.recordNum].ChapterId;
-    this.setState({ status: STATUS.LOADING }, () => {
-      this.fetchContent(chapterId, -1);
-    });
-  }
-
-  async getCurrentPage(pag) {
-    pag = pag === 0 ? 1 : pag;
-    realm.write(() => {
-      this.currentBook.LastChapterReadPage = pag;
-    });
-  }
-
-  clickBoard() {
-    const flag = this.state.isVisible;
-    LayoutAnimation.configureNext({
-      duration: 200, //持续时间
-      create: { // 视图创建
-        type: LayoutAnimation.Types.linear,
-        property: LayoutAnimation.Properties.opacity,// opacity
-      },
-      update: { // 视图更新
-        type: LayoutAnimation.Types.linear,
-      },
-      delete: {
-        type: LayoutAnimation.Types.linear,
-        property: LayoutAnimation.Properties.opacity,// opacity
-      }
-    });
-    this.props.navigation.setParams({
-      showHeader: !flag
-    });
-    this.setState({ isVisible: !flag });
-  }
-
-  modeChange() {
-    const flag = this.state.sunnyMode;
-    this.setState({
-      sunnyMode: !flag,
-    });
-    AsyncStorage.setItem('sunnyMode', JSON.stringify(!flag));
-  }
-  //endregion
-
-  renderPage(data, pageID) {
-    const title = this.chapterList[this.recordNum].Title;
-    const date = dateFormat(new Date(), 'H:MM');
+  renderNone() {
     return (
-      <View style={[this.styles.Container, this.styles.bookCont]}>
-        <Text style={[this.styles.title, this.styles.TitleColor]}>{title}</Text>
-        <Text style={[this.styles.textsize, this.styles.TextColor]} numberOfLines={21}>{data}</Text>
-        <View style={this.styles.bottView}>
-          <Text style={[this.styles.bottom1, this.styles.BottomColor]}>{date}</Text>
-          <Text style={[this.styles.bottom2, this.styles.BottomColor]} >{Number(pageID) + 1}/{this.totalPage} </Text>
+      <EmptyView
+        tip="访问失败"
+        subTip="重新加载"
+      />
+    )
+  }
+
+  renderLoading() {
+    return (
+      <EmptyView
+        tip="正在加载中"
+      />
+    )
+  }
+
+  renderChapterPage(pageLines = [], pageIndex) {
+    const { chapterStyles, theme } = this.state;
+    return (
+      <TouchableWithoutFeedback key={pageIndex} onPress={this._toggleBar}>
+        <View
+          style={[{
+            flex: 1,
+            overflow: 'hidden',
+            backgroundColor: 'transparent',
+          }]}
+        >
+          <Text>
+            {
+              pageLines.map((pageLine, lineIndex) => (
+                <Text
+                  key={`${pageIndex}-${lineIndex}`}
+                  numberOfLines={1}
+                  style={[getTheme(this.state.theme).text, chapterStyles]}
+                >{pageLine}{"\n"}</Text>
+              ))
+            }
+          </Text>
         </View>
-      </View>
+      </TouchableWithoutFeedback>
     );
   }
 
   renderContent() {
-    const ds = new ViewPager.DataSource({ pageHasChanged: (p1, p2) => p1 !== p2 });
-    switch (this.state.status) {
-      case STATUS.READY:
-      case STATUS.LOADING:
-        return (
-          <Page
-            containerStyle={{ backgroundColor: 'transparent' }}
-          >
-            <Text style={[this.styles.centr, this.styles.TextColor]}>
-              Loading...
-            </Text>
-          </Page>
-        );
-      case STATUS.FAILED:
-        return (
-          <Page
-            containerStyle={{ backgroundColor: 'transparent' }}
-            onPress={this.clickBoard}
-          >
-            <Text style={[this.styles.centr, this.styles.TextColor]}>
-              加载失败！
-            </Text>
-          </Page>
-        );
-      case STATUS.FINISH:
-        return (
-          <ViewPager
-            ref={'pager'}
-            dataSource={ds.cloneWithPages(this.state.currentItem)}
-            renderPage={this.renderPage}
-            getNextPage={this.getNextPage}
-            getPrevPage={this.getPrevPage}
-            getCurrentPage={this.getCurrentPage}
-            clickBoard={this.clickBoard}
-            initialPage={this.currentBook.LastChapterReadPage - 1}
-            locked={this.state.isVisible}
-            bodyComponents={this.bodyComponents}
-            Gpag={this.state.goFlag}
-          />
-        );
-      default:
-        throw `no status that named ${this.state.status} is allowed`;
+    if (STATUS.READY === this.state.status || STATUS.LOADING === this.state.status) {
+      return this.renderLoading();
     }
+    if (STATUS.FINISH !== this.state.status) {
+      return this.renderNone();
+    }
+    return (
+      <Pages
+        ref="pages"
+        style={{
+          paddingTop: 0,
+          paddingRight: 10,
+          paddingBottom: 40,
+          paddingLeft: 20,
+        }}
+        indicatorPosition="none"
+        onScrollEnd={() => {
+          const currentPageIndex = this.refs.pages.progress;
+          const oldPageIndex = this.state.chapterPageIndex;
+          const pages = this.state.chapterPages.length;
+
+          if (currentPageIndex === 0 && oldPageIndex === 0) {
+            // 第一页重复往左滑，前往前一章
+            this._prevChapter();
+          } else if (currentPageIndex === (pages - 1) && oldPageIndex === (pages - 1)) {
+            // 最后一页重复向右滑，前往后一章
+            this._nextChapter();
+          } else {
+            // 中间记录当前页的索引
+            this.setState({
+              chapterPageIndex: currentPageIndex,
+            }, () => {
+              // record chapter page change
+              this._recordPageProgress(currentPageIndex);
+            });
+          }
+        }}
+      >
+        {
+          this.state.chapterPages.map((pageLines, index) => this.renderChapterPage(pageLines, index))
+        }
+      </Pages>
+    )
+  }
+
+  renderPageInfo() {
+    if (STATUS.FINISH !== this.state.status) {
+      return false;
+    }
+
+    const precent = (+this.state.progress).toFixed(1);
+    return (
+      <Fragment>
+        <Text style={styles.footer.text}>{this.state.chapterPageIndex + 1}/{this.state.chapterPages.length} {precent}%</Text>
+        <Text style={[styles.footer.text, styles.footer.right]}>20:18</Text>
+      </Fragment>
+    );
+  }
+
+  renderBottomNav() {
+    if (!this.state.barShow) {
+      return false;
+    }
+
+    return (
+      <BottomNav
+        screenProps={this.props.screenProps}
+        navigation={this.props.navigation}
+        onChangeBackGround={this._onChangeBackgroundColor}
+        onChangeMode={() => this._onChangeBackgroundColor(this.state.theme === moonTheme ? defaultTheme : moonTheme)}
+        onCatalogIn={this._onCatalogIn}
+      />
+    );
   }
 
   render() {
+    const theme = getTheme(this.state.theme);
     return (
-      <View style={this.styles.Container}>
+      <Page
+        containerStyle={theme.background}
+      >
         <StatusBar
           barStyle={'light-content'}
-          hidden={!this.state.isVisible}
+          hidden={!this.state.barShow}
           animation={true}
         />
+        <View style={styles.title.wrapper} >
+          <Text style={styles.title.text} >{this.state.chapterTitle}</Text>
+        </View>
         {this.renderContent()}
-        <Toast ref="toast" />
-        {this.state.isVisible && <BottomNav
-          screenProps={this.props.screenProps}
-          navigation={this.props.navigation}
-          chapterList={this.chapterList}
-          recordNum={this.recordNum}
-          onChangeBackGround={this.onChangeBackGround}
-          modeChange={this.modeChange}
-          bookName={this.currentBook.BookName}
-          getContent={this.getContent} />}
-      </View>
+        <View style={styles.footer.wrapper}>
+          {this.renderPageInfo()}
+        </View>
+        {this.renderBottomNav()}
+      </Page>
     );
+  }
+
+  _init = async () => {
+    const book = this.props.navigation.state.params.book;
+    const { data: chapters, err } = await chapterList(book._id);
+    if (err || chapters.length === 0) {
+      this.setState({
+        status: STATUS.FAILED,
+      });
+      return false;
+    }
+
+    // fetch realm book info
+    const realmBook = realm.objectForPrimaryKey('Shelf', book._id).book;
+    let currentChapter = realmBook.lastReadedChapter;
+    const currentPageIndex = realmBook.lastChapterReadPage;
+
+    if (!currentChapter || currentChapter === null) {
+      // if current chapter index is null
+      currentChapter = 0;
+      this._recordChapterChange(currentChapter);
+    } else if (currentChapter > (chapters.length - 1)) {
+      // if current chapter index lager than last chapter index, 
+      // reset current chapter index and set into realm database.
+      currentChapter = chapters.length - 1;
+      this._recordChapterChange(currentChapter);
+    }
+
+    // init some data
+    this.setState({
+      chapters,
+      currentChapter,
+      nextChapter: this._nextChapterIndex(chapters.length, currentChapter),
+      prevChapter: this._prevChapterIndex(chapters.length, currentChapter),
+      currentPageIndex,
+      progress: realmBook.progress,
+    }, () => {
+      this._fetchChapterContent(this.state.chapters[currentChapter].link);
+
+      // init realm book
+      this._getRealmBook();
+    });
+  }
+
+  _fetchChapterContent = async (link) => {
+    const { data: chapter, err: chapterErr } = await content(link);
+
+    if (chapterErr) {
+      this.setState({
+        status: STATUS.FAILED,
+      });
+      return false;
+    }
+
+    const { body, title } = chapter;
+    const { chapterPages, styles } = await this._processContent(body);
+    this.setState({
+      status: STATUS.FINISH,
+      chapterTitle: title,
+      chapterPages,
+      chapterStyles: styles,
+    });
+
+    return chapterPages;
+  }
+
+  _nextChapterIndex = (chaptersLength, currentChapter) => {
+    return currentChapter < (chaptersLength - 1) ? currentChapter + 1 : null;
+  }
+
+  _prevChapterIndex = (chaptersLength, currentChapter) => {
+    return currentChapter > 0 ? currentChapter - 1 : null;
+  }
+
+  _nextChapter = async () => {
+    this._jumpToChapter(this.state.currentChapter + 1);
+  }
+
+  _prevChapter = async () => {
+    this._jumpToChapter(this.state.currentChapter - 1);
+  }
+
+  _jumpToChapter = async (chapterIndex) => {
+    const { currentChapter, chapters } = this.state;
+    if (chapterIndex < 0 || chapterIndex > (chapters.length - 1) || chapterIndex === currentChapter) {
+      return;
+    }
+
+    const chapterPages = await this._fetchChapterContent(chapters[chapterIndex].link);
+    const isGo = currentChapter < chapterIndex;
+    const resetPageIndex = isGo ? 0 : chapterPages.length - 1;
+    this.setState({
+      currentChapter: chapterIndex,
+      nextChapter: this._nextChapterIndex(chapters.length, chapterIndex),
+      prevChapter: this._prevChapterIndex(chapters.length, chapterIndex),
+      chapterPageIndex: resetPageIndex,
+      progress: ((currentChapter + 1) / chapters.length * 100).toFixed(2),
+    }, () => {
+      this.refs.pages.resetProgress(resetPageIndex);
+
+      // record chapter change
+      this._recordChapterChange(chapterIndex);
+    });
+  }
+
+  _processContent = async (text) => {
+    const { width: w, height: h } = Dimensions.get('window');
+    const theme = getTheme(this.state.theme).text;
+    const { fontSize, lineHeight } = theme;
+
+    const words = Math.floor((w - 30) / fontSize);
+    const lines = Math.floor((h - 80) / lineHeight);   // 总行数
+
+    const rawLines = text.match(/[^\r\n]+/g);
+    const processedLines = rawLines.reduce((res, rawLine) => res.concat(this._processLine(rawLine, words)), []);
+    const pagesize = Math.ceil(processedLines.length / lines);
+
+    let chapterPages = [];
+    for (var i = 0; i < pagesize; i++) {
+      const startIndex = i * lines;
+      const endIndex = startIndex + lines;
+      const chapterLines = processedLines.slice(startIndex, endIndex);
+
+      chapterPages = [...chapterPages, chapterLines];
+    }
+
+    return {
+      chapterPages,
+      styles: {
+        fontSize,
+        lineHeight,
+        textAlign: 'justify',
+        width: words * fontSize,
+      },
+    };
+  }
+
+  _processLine = (line, maxLineWords) => {
+    const needNewLine = line.length > maxLineWords;
+    const newLines = [];
+    if (needNewLine) {
+      const newLineSize = Math.ceil(line.length / maxLineWords);
+      for (var i = 0; i < newLineSize; i++) {
+        if (line.trim() === '') {
+          break;
+        }
+        newLines.push(line.substring(0, maxLineWords));
+        line = line.substring(maxLineWords);
+      }
+    } else {
+      newLines.push(line);
+    }
+
+    return newLines;
+  }
+
+  _toggleBar = () => {
+    const barShow = !this.state.barShow;
+    this.setState({
+      barShow,
+    });
+    this.props.navigation.setParams({
+      barShow,
+    });
+  }
+
+  _onChangeBackgroundColor = key => {
+    this.setState({
+      theme: key,
+    });
+  }
+
+  _onCatalogIn = () => {
+    this.props.navigation.navigate('Catalog', {
+      chapterList: this.state.chapters,
+      chapterIndex: this.state.currentChapter,
+      bookName: this.props.navigation.state.params.bookName,
+
+      onChapterClicked: (index, chapter) => {
+        this._jumpToChapter(index);
+        this._toggleBar();
+      },
+    });
+  }
+
+  _getRealmBook = () => {
+    const book = this.props.navigation.state.params.book;
+    if (this.realmBook
+      || (this.realmBook = realm.objectForPrimaryKey('Book', book._id))) {
+      return this.realmBook;
+    }
+
+    realm.write(() => {
+      realm.create('Book', book);
+    });
+    return (this.realmBook = realm.objectForPrimaryKey('Book', book._id));
+  }
+
+  _recordChapterChange = async (currentChapter) => {
+    const book = this._getRealmBook();
+    realm.write(() => {
+      book.lastReadedTime = new Date().getTime();
+      book.lastReadedChapter = currentChapter;
+      book.progress = +this.state.progress;
+    });
+  }
+
+  _recordPageProgress = async (currentPageIndex) => {
+    const book = this._getRealmBook();
+    realm.write(() => {
+      book.lastReadedChapter = currentPageIndex;
+    });
   }
 }
 

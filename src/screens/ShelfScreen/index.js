@@ -35,7 +35,7 @@ class ShelfScreen extends Component {
             color={theme.styles.navButton.color}
             underlayColor={theme.styles.navButton.underlayColor}
             onPress={() => {
-              screenProps.router.navigate(navigation, 'Search');
+              navigation.navigate('Search');
             }}
           />
           <Icon
@@ -58,73 +58,32 @@ class ShelfScreen extends Component {
       tabBarLabel: '书架',
     };
   };
+
   constructor(props) {
     super(props);
 
-    this.bookLst = [];
-
-    this.onFetch = this.onFetch.bind(this);
-    this.addDataListener = this.addDataListener.bind(this);
-    this.removeDataListener = this.removeDataListener.bind(this);
-    this.renderFooter = this.renderFooter.bind(this);
+    this.shelfList = undefined;
+    this.listenerAdded = false;
   }
 
   componentWillUnmount() {
-    this.removeDataListener();
+    this._removeDataListener();
   }
 
-  async onFetch() {
-    const sortProperties = [['LastReadedTime', true], ['LastAppendTime', true]];
-    this.bookLst = realm.objects('Shelf').sorted(sortProperties);
-    if (this.bookLst && this.bookLst.length > 0) {
-      this.addDataListener();
-      return { data: this.bookLst };
+  renderFooter(booklist) {
+    if (booklist.length === 0) {
+      return false;
     }
-
-    const { data, err } = await list();
-    if (err) {
-      return { err };
-    }
-
-    const appendTime = new Date().getTime();
-    realm.write(() => {
-      data.map(item => {
-        realm.create('Shelf', {
-          ...item,
-          Progress: 0,
-          LastAppendTime: appendTime,
-        });
-      });
-    });
-
-    this.bookLst = realm.objects('Shelf').sorted(sortProperties);
-    this.addDataListener();
-    return { data: this.bookLst };
-  }
-
-  addDataListener() {
-    this.bookLst.addListener((puppies, changes) => {
-      this.forceUpdate();
-    });
-  }
-
-  removeDataListener() {
-    this.bookLst.removeAllListeners();
-  }
-
-  renderFooter() {
     return (
       <View style={styles.readMore.container}>
         <Button
           containerViewStyle={styles.readMore.button.wrapper}
-          borderRadius={styles.readMore.button.borderRadius}
           buttonStyle={[styles.readMore.button.button, { borderColor: theme.styles.variables.colors.main }]}
-          color={theme.styles.variables.colors.main}
-          title='浏览记录'
-          fontSize={styles.readMore.button.fontSize}
-          rightIcon={{ name: 'chevron-right', color: theme.styles.variables.colors.main, style: styles.readMore.button.chevron }}
+          title="浏览记录"
+          titleStyle={{ color: theme.styles.variables.colors.main, fontSize: styles.readMore.button.fontSize }}
+          iconRight={{ name: 'chevron-right', color: theme.styles.variables.colors.main, style: styles.readMore.button.chevron }}
           onPress={() => {
-            this.props.screenProps.router.navigate(this.props.navigation, 'History');
+            this.props.navigation.navigate('History');
           }}
         />
       </View>
@@ -134,24 +93,66 @@ class ShelfScreen extends Component {
   render() {
     return (
       <Page>
-        <Toast
-          ref="toast"
-          position='center'
-          bot={30} />
         <BookList
+          ref="bookList"
           type={BookListType.Simple}
-          datasource={this.onFetch}
-          ListFooterComponent={this.renderFooter}
+          datasource={this._onFetch}
+          ListFooterComponent={this.renderFooter.bind(this)}
           extraData={theme.styles.variables.colors.main}  // 设置主题色（如果不设置则无法触发list刷新DOM）
           onItemClicked={(item) => {
-            // console.log(item);
-            let BookId = item.BookId;
-            this.props.screenProps.router.navigate(this.props.navigation, 'Book', { BookId: BookId }, NavigationActions.navigate({ routeName: 'Read', params: { BookId: BookId } }));
+            let BookId = item._id;
+            this.props.navigation.navigate(
+              'Book',
+              {
+                BookId: BookId,
+                bookName: item.title,
+              },
+              NavigationActions.navigate({
+                routeName: 'Read',
+                params: {
+                  book: item,
+                },
+              }),
+            );
           }}
-          keyExtractor={(item, index) => `${item.BookId}`}
+          keyExtractor={(item, index) => `${item._id}`}
         />
       </Page>
     );
+  }
+
+  _onFetch = async () => {
+    if (this.shelfList) {
+      return { data: this.shelfList.map(shelf => shelf.book) };
+    }
+
+    const sortProperties = [['book.lastReadedTime', true], ['lastAppendTime', true]];
+    this.shelfList = realm.objects('Shelf').sorted(sortProperties);
+    this._addDataListener();
+    return { data: this.shelfList.map(shelf => shelf.book) };
+  }
+
+  _addDataListener = () => {
+    this.shelfList.addListener((puppies, changes) => {
+      this.refs.bookList.refresh();
+    });
+  }
+
+  _removeDataListener = () => {
+    this.shelfList.removeAllListeners();
+  }
+
+  _toString = (realms) => {
+    return realms
+      .map(realm => realm.book)
+      .map(realm => ({
+        _id: realm._id,
+        title: realm.title,
+        lastReadedTime: realm.lastReadedTime,
+        lastReadedChapter: realm.lastReadedChapter,
+        lastChapterReadPage: realm.lastChapterReadPage,
+        progress: realm.progress,
+      }));
   }
 }
 

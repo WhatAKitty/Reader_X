@@ -4575,6 +4575,10 @@ react-native-fetch-mock@^0.6.1:
     mockjs "^1.0.1-beta3"
     path-to-regexp "^2.1.0"
 
+react-native-iphone-x-helper@^1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/react-native-iphone-x-helper/-/react-native-iphone-x-helper-1.0.2.tgz#7dbca530930f7c1ce8633cc8fd13ba94102992e1"
+
 react-native-pin-parallax-view@^0.0.6:
   version "0.0.6"
   resolved "http://registry.npm.taobao.org/react-native-pin-parallax-view/download/react-native-pin-parallax-view-0.0.6.tgz#d4678db709d6b2a6761d2534bea5d8d684baf4c7"
@@ -4596,6 +4600,10 @@ react-native-tab-view@^0.0.74:
   resolved "https://registry.yarnpkg.com/react-native-tab-view/-/react-native-tab-view-0.0.74.tgz#62c0c882d9232b461ce181d440d683b4f99d1bd8"
   dependencies:
     prop-types "^15.6.0"
+
+react-native-typography@^1.3.0:
+  version "1.3.0"
+  resolved "https://registry.yarnpkg.com/react-native-typography/-/react-native-typography-1.3.0.tgz#ae921c141ab1dfdf4335ebc2b4a146bcf7919b36"
 
 react-native-vector-icons@^4.5.0:
   version "4.5.0"

@@ -21,7 +21,7 @@ class Page extends Component {
     containerStyle: {},
     enableLoad: false,
     init: () => { },
-    onPress: () => {},
+    onPress: () => { },
   }
 
   constructor(props) {
@@ -57,13 +57,11 @@ class Page extends Component {
     }
 
     return (
-      <TouchableWithoutFeedback
-        onPress={this.props.onPress}
+      <View
+        style={[styles.container, this.props.containerStyle, { flex: 1 }]}
       >
-        <View style={[styles.container, this.props.containerStyle, { flex: 1 }]}>
-          {this.props.children}
-        </View>
-      </TouchableWithoutFeedback>
+        {this.props.children}
+      </View>
     );
   }
 }

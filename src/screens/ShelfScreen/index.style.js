@@ -58,7 +58,7 @@ export default {
     container: {
       alignItems: 'center',
       marginTop: 14,
-      marginBottom:42,
+      marginBottom: 42,
     },
     button: {
       wrapper: {
@@ -70,10 +70,8 @@ export default {
         backgroundColor: colors.contrast,
         height: 10,
         width: 86,
+        borderRadius: 22,
       },
-      borderRadius: 22,
-      color: colors.main,
-      fontSize: size.sm,
       chevron: {
         marginLeft: 0,
         marginRight: -5,

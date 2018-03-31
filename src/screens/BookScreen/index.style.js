@@ -1,4 +1,4 @@
-
+import { ifIphoneX } from 'react-native-iphone-x-helper';
 import { colors, size, weight } from '../../theme';
 
 export default {
@@ -7,7 +7,11 @@ export default {
   },
   parallax: {
     flex: 1,
-    paddingTop: 60,
+    ...ifIphoneX({
+      paddingTop: 80,
+    }, {
+      paddingTop: 60,
+    })
   },
   scrollview: {
     backgroundColor: '#eee',
