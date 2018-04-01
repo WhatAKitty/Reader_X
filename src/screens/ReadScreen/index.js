@@ -23,7 +23,7 @@ import Page from '../../components/Page';
 import EmptyView from '../../components/EmptyView';
 
 import { content, chapterList } from '../../services/book';
-import realm, { SortDescriptor } from '../../models';
+import getRealm, { SortDescriptor } from '../../models';
 import constants from '../../utils/constants';
 
 import styles from './index.style';
@@ -231,7 +231,7 @@ class ReadScreen extends PureComponent {
     }
 
     // fetch realm book info
-    const realmBook = this._getRealmBook();
+    const realmBook = await this._getRealmBook();
     let currentChapter = realmBook.lastReadedChapter;
     this.chapterPageIndex = realmBook.lastChapterReadPage === null ? 0 : realmBook.lastChapterReadPage;
 
@@ -426,7 +426,8 @@ class ReadScreen extends PureComponent {
     });
   }
 
-  _getRealmBook = () => {
+  _getRealmBook = async () => {
+    const { realm, err } = await getRealm();
     const book = this.props.navigation.state.params.book;
     if (this.realmBook
       || (this.realmBook = realm.objectForPrimaryKey('Book', book._id))) {
@@ -440,11 +441,13 @@ class ReadScreen extends PureComponent {
   }
 
   _recordChapterChange = async (currentChapter) => {
-    const book = this._getRealmBook();
+    const { realm, err } = await getRealm();
+    const book = await this._getRealmBook();
     requestAnimationFrame(() => {
       realm.write(() => {
         book.lastReadedTime = new Date().getTime();
         book.lastReadedChapter = currentChapter;
+        book.lastReadedChapterName = this.state.chapters[currentChapter].title;
         book.progress = +this.state.progress;
       });
     });
@@ -456,7 +459,8 @@ class ReadScreen extends PureComponent {
     }
     this.pageProgressRecording = true;
 
-    const book = this._getRealmBook();
+    const { realm, err } = await getRealm();
+    const book = await this._getRealmBook();
     requestAnimationFrame(() => {
       realm.write(() => {
         book.lastChapterReadPage = currentPageIndex;

@@ -15,7 +15,7 @@ import Page from '../../components/Page';
 import Toast from '../../components/Toast';
 import BookList, { BookListType } from '../../components/BookList';
 
-import realm, { SortDescriptor } from '../../models';
+import getRealm, { SortDescriptor } from '../../models';
 
 import { list } from '../../services/book';
 
@@ -126,6 +126,7 @@ class ShelfScreen extends Component {
       return { data: this.shelfList.map(shelf => shelf.book) };
     }
 
+    const { realm, err } = await getRealm();
     const sortProperties = [['book.lastReadedTime', true], ['lastAppendTime', true]];
     this.shelfList = realm.objects('Shelf').sorted(sortProperties);
     this._addDataListener();
@@ -142,19 +143,6 @@ class ShelfScreen extends Component {
 
   _removeDataListener = () => {
     this.shelfList.removeAllListeners();
-  }
-
-  _toString = (realms) => {
-    return realms
-      .map(realm => realm.book)
-      .map(realm => ({
-        _id: realm._id,
-        title: realm.title,
-        lastReadedTime: realm.lastReadedTime,
-        lastReadedChapter: realm.lastReadedChapter,
-        lastChapterReadPage: realm.lastChapterReadPage,
-        progress: realm.progress,
-      }));
   }
 }
 

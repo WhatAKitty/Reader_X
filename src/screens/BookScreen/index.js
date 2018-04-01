@@ -19,7 +19,7 @@ import RefreshFlatList, { RefreshState } from '../../components/RefreshFlatList'
 import BookComment from '../../components/BookComment';
 import Toast from '../../components/Toast';
 
-import realm from '../../models';
+import getRealm from '../../models';
 
 import { theme } from '../../theme';
 import styles from './index.style';
@@ -243,9 +243,11 @@ class BookScreen extends Component {
               <TouchableWithoutFeedback
                 key={book._id}
                 onPress={() => {
-                  this.props.navigation.navigate('Book', book, NavigationActions.navigate({ routeName: 'Info', params: {
-                    BookId: book._id,
-                  } }));
+                  this.props.navigation.navigate('Book', book, NavigationActions.navigate({
+                    routeName: 'Info', params: {
+                      BookId: book._id,
+                    }
+                  }));
                 }}
               >
                 <View style={styles.author.books.book.container}>
@@ -307,12 +309,15 @@ class BookScreen extends Component {
         onPress={(selectIndex) => {
           if (selectIndex === 1) {
             // 立即阅读
-            this.props.navigation.navigate('Book', book, NavigationActions.navigate({ routeName: 'Read', params: {
-              book,
-            } }));
+            this.props.navigation.navigate('Book', book, NavigationActions.navigate({
+              routeName: 'Read', params: {
+                book,
+              }
+            }));
           } else if (selectIndex === 2) {
             // 加入书架
-            requestAnimationFrame(() => {
+            requestAnimationFrame(async () => {
+              const { realm, err } = await getRealm();
               const alreadyIn = realm.objectForPrimaryKey('Shelf', book._id);
               if (alreadyIn) return false;
 

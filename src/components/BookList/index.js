@@ -85,7 +85,7 @@ class BookList extends Component {
         </View>
         <View style={this.styles.item.info.text.container}>
           <Text style={this.styles.item.info.text.text}>
-            {item.lastReadedChapter === null ? `最新章节：${item.lastChapter}` : item.lastReadedChapter}
+            {item.lastReadedChapter === null ? `最新章节：${item.lastChapter}` : `最近阅读：${item.lastReadedChapterName}`}
           </Text>
         </View>
       </View>

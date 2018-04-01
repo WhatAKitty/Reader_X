@@ -19,6 +19,7 @@ Book.schema = {
     wordCount:                'int',                                                      // 总字数
     lastReadedTime:           {type: 'int', optional: true, indexed: true},               // 上次阅读时间，时间戳
     lastReadedChapter:        {type: 'int', optional: true},                              // 最近阅读章节
+    lastReadedChapterName:    {type: 'string', optional: true},                           // 最近阅读章节名称
     lastChapterReadPage:      {type: 'int', default: 0},                                  // 上次阅读章节内的页索引
     progress:                 {type: 'double', optional: true},                           // 阅读进度
   },
