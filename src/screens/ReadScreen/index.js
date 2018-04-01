@@ -350,7 +350,7 @@ class ReadScreen extends PureComponent {
     const theme = getTheme(this.state.theme).text;
     const { fontSize, lineHeight } = theme;
 
-    const words = Math.floor((w - fontSize) / fontSize);
+    const words = Math.floor((w - 40) / fontSize);
     const lines = Math.floor((h - 80) / lineHeight);   // 总行数
 
     const rawLines = text.match(/[^\r\n]+/g);
