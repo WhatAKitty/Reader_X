@@ -354,7 +354,8 @@ class ReadScreen extends PureComponent {
     const lines = Math.floor((h - 80) / lineHeight);   // 总行数
 
     const rawLines = text.match(/[^\r\n]+/g);
-    const processedLines = rawLines.reduce((res, rawLine) => res.concat(this._processLine(rawLine, words)), []);
+    // 额外加两个全角空格，调整排版样式
+    const processedLines = rawLines.reduce((res, rawLine) => res.concat(this._processLine(`\u3000\u3000${rawLine.trim()}`, words)), []);
     const pagesize = Math.ceil(processedLines.length / lines);
 
     let chapterPages = [];
