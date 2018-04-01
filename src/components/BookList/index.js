@@ -97,7 +97,7 @@ class BookList extends Component {
       <View style={this.styles.item.info.container}>
         <View style={[this.styles.item.info.text.container, this.styles.item.info.description.container]}>
           <Text style={[this.styles.item.info.text.text]} numberOfLines={2} ellipsizeMode='tail'>
-            {item.longItro || item.shortIntro}
+            {item.longIntro || item.shortIntro}
           </Text>
         </View>
         <View style={[this.styles.item.info.text.container, this.styles.item.info.authors.container]}>

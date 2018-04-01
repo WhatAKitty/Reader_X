@@ -12,8 +12,7 @@ import { NavigationActions, HeaderBackButton } from 'react-navigation';
 
 import Page from '../../components/Page';
 import BookList, { BookListType } from '../../components/BookList';
-
-import { history } from '../../services/book';
+import realm, { SortDescriptor } from '../../models';
 
 import { theme } from '../../theme';
 
@@ -41,17 +40,26 @@ class HistoryScreen extends PureComponent {
     return (
       <Page>
         <BookList
-          datasource={history}
+          datasource={this._onFetch}
           type={BookListType.Complete}
           onItemClicked={(item) => {
             this.props.navigation.navigate('Book', item, NavigationActions.navigate({ routeName: 'Info', params: {
-              book: item,
+              BookId: item._id,
             } }));
           }}
+          keyExtractor={(item, index) => `${item._id}`}
         />
       </Page>
     );
   }
+
+  _onFetch = async () => {
+    const sortProperties = [['lastReadedTime', true]];
+    const bookList = realm.objects('Book').sorted(sortProperties);
+    console.log(bookList.map(book => book));
+    return { data: bookList };
+  }
+
 }
 
 export default HistoryScreen;
