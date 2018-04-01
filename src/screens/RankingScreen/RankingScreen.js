@@ -24,7 +24,11 @@ class RankingScreen extends Component {
             type='entypo'
             color={theme.styles.navButton.color}
             underlayColor={theme.styles.navButton.underlayColor}
-            onPress={() => navigation.navigate('Ranks')}
+            onPress={() => navigation.navigate('Ranks', {
+              ranks: navigation.getParam('ranks', []),
+
+              onRankClicked: navigation.getParam('onRankClicked', () => { }),
+            })}
           />
         </View>
       ),
@@ -43,14 +47,20 @@ class RankingScreen extends Component {
     super(props);
 
     this.state = {
-      rank: undefined,
-      result: [],
+      bookList: [],
       loadFlag: RefreshState.Idle,
     }
   }
 
+  componentWillMount() {
+    // init navigations event
+    this.props.navigation.setParams({
+      onRankClicked: this._onRankChanged,
+    });
+  }
+
   componentDidMount() {
-    this._onFetch();
+    this._init();
   }
 
   render() {
@@ -60,20 +70,22 @@ class RankingScreen extends Component {
           keyExtractor={(item, index) => `${item._id}`}
           dynamic={false}
           type={BookListType.Complete}
-          booklist={this.state.result}
+          booklist={this.state.bookList}
 
           onItemClicked={(item, index) => {
-            this.props.navigation.navigate('Book', item, NavigationActions.navigate({ routeName: 'Info', params: {
-              BookId: item._id,
-            } }));
+            this.props.navigation.navigate('Book', item, NavigationActions.navigate({
+              routeName: 'Info', params: {
+                BookId: item._id,
+              }
+            }));
           }}
         />
       </Page>
     );
   }
 
-  _onFetch = async () => {
-    const { data, err } = await list();
+  _init = async () => {
+    const { data: ranks, err } = await list();
     if (err) {
       // 搜索失败
       this.setState({
@@ -82,34 +94,46 @@ class RankingScreen extends Component {
       return false;
     }
 
-    const maleRank = data.male;
+    // 设置所有榜单到navigations
+    this.props.navigation.setParams({
+      ranks,
+    });
+
+    const maleRank = ranks.male;
     const defaultRank = maleRank[0];
     // 设置默认排行榜
-    this.setState({
-      rank: {
-        id: defaultRank._id,
-        title: defaultRank.title,
-      },
+    this._onFetchRankBooks({
+      id: defaultRank._id,
+      title: defaultRank.title
     });
+  }
 
+  _onFetchRankBooks = async ({ id, title }) => {
     // 获取该榜单图书列表
-    const { data: rankBooks, err: rankBooksErr } = await books(defaultRank._id);
+    const { data: rankBooks, err: rankBooksErr } = await books(id);
 
     if (rankBooksErr) {
+      console.log('load err', rankBooksErr)
       this.setState({
         loadFlag: RefreshState.Failure,
-        rank: undefined,
       });
-      return false;
+      return;
     }
 
-    this.props.navigation.setParams({
-      title: defaultRank.title,
-    });
-
     this.setState({
-      result: [...rankBooks],
+      bookList: [...rankBooks],
       loadFlag: RefreshState.Idle,
+    }, () => {
+      this.props.navigation.setParams({
+        title,
+      });
+    });
+  }
+
+  _onRankChanged = (rank) => {
+    this._onFetchRankBooks({
+      id: rank._id,
+      title: rank.title,
     });
   }
 
