@@ -32,7 +32,6 @@ class BookList extends Component {
 
     this.state = {
       booklist: this.props.booklist || [],
-      type: BookListType.Complete,
       loadingFlag: true,
       fetchFlag: RefreshState.Idle,
     };
@@ -188,24 +187,26 @@ class BookList extends Component {
   }
 
   _onFetch = () => {
-    this.setState({ fetchFlag: RefreshState.HeaderRefreshing }, async () => {
-      const { err, data } = await this.props.datasource();
-      if (err) {
-        this.setState({
-          fetchFlag: RefreshState.Failure,
-        });
-        return;
-      }
-      if (!data || !data.length) {
-        this.setState({
-          fetchFlag: RefreshState.NoMoreData,
-        });
-        return;
-      }
+    requestAnimationFrame(() => {
+      this.setState({ fetchFlag: RefreshState.HeaderRefreshing }, async () => {
+        const { err, data } = await this.props.datasource();
+        if (err) {
+          this.setState({
+            fetchFlag: RefreshState.Failure,
+          });
+          return;
+        }
+        if (!data || !data.length) {
+          this.setState({
+            fetchFlag: RefreshState.NoMoreData,
+          });
+          return;
+        }
 
-      this.setState({
-        booklist: data,
-        fetchFlag: RefreshState.Idle,
+        this.setState({
+          booklist: data,
+          fetchFlag: RefreshState.Idle,
+        });
       });
     });
   }

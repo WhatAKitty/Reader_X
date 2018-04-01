@@ -45,7 +45,7 @@ class HistoryScreen extends PureComponent {
           type={BookListType.Complete}
           onItemClicked={(item) => {
             this.props.navigation.navigate('Book', item, NavigationActions.navigate({ routeName: 'Info', params: {
-              BookId: item._id,
+              book: item,
             } }));
           }}
         />

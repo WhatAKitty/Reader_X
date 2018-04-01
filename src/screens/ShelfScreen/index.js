@@ -134,7 +134,9 @@ class ShelfScreen extends Component {
 
   _addDataListener = () => {
     this.shelfList.addListener((puppies, changes) => {
-      this.refs.bookList.refresh();
+      if (changes.insertions.length > 0 || changes.deletions.length > 0 || changes.modifications.length > 0) {
+        this.refs.bookList.refresh();
+      }
     });
   }
 
