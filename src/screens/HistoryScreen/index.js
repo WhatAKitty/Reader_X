@@ -56,7 +56,6 @@ class HistoryScreen extends PureComponent {
   _onFetch = async () => {
     const sortProperties = [['lastReadedTime', true]];
     const bookList = realm.objects('Book').sorted(sortProperties);
-    console.log(bookList.map(book => book));
     return { data: bookList };
   }
 
