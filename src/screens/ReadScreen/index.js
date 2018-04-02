@@ -84,6 +84,7 @@ class ReadScreen extends PureComponent {
     status: STATUS.READY,
     chapters: [],
     chapterTitle: '加载中',
+    chapterRawContent: undefined,
     chapterPages: [],
     currentChapter: 0,
     progress: 0,
@@ -257,7 +258,17 @@ class ReadScreen extends PureComponent {
   }
 
   _fetchChapterContent = async (link) => {
-    const { data: chapter, err: chapterErr } = await content(link);
+    // 存在章节缓存，直接返回缓存内容
+    const { realm, err } = await getRealm();
+    const realmChapter = realm.objectForPrimaryKey('Chapter', link);
+
+    const { data: chapter, err: chapterErr } = realmChapter ?
+      {
+        data: {
+          body: realmChapter.content,
+          title: realmChapter.title,
+        }
+      } : await content(link);
 
     if (chapterErr) {
       this.setState({
@@ -271,6 +282,7 @@ class ReadScreen extends PureComponent {
     this.setState({
       status: STATUS.FINISH,
       chapterTitle: title,
+      chapterRawContent: body,
       chapterPages,
       chapterStyles: styles,
     });
@@ -442,13 +454,29 @@ class ReadScreen extends PureComponent {
 
   _recordChapterChange = async (currentChapter) => {
     const { realm, err } = await getRealm();
+    const chapter = this.state.chapters[currentChapter];
     const book = await this._getRealmBook();
+    const realmChapter = realm.objectForPrimaryKey('Chapter', chapter.link);
     requestAnimationFrame(() => {
       realm.write(() => {
+        // 修改图书信息
         book.lastReadedTime = new Date().getTime();
         book.lastReadedChapter = currentChapter;
-        book.lastReadedChapterName = this.state.chapters[currentChapter].title;
+        book.lastReadedChapterName = chapter.title;
         book.progress = +this.state.progress;
+
+        // 增加该章节缓存
+        if (!realmChapter) {
+          const book = this.props.navigation.getParam('book', {});
+          realm.create('Chapter', {
+            ...chapter,
+            bookId: book._id,
+            title: chapter.title,
+            link: chapter.link,
+            index: currentChapter,
+            content: this.state.chapterRawContent,
+          });
+        }
       });
     });
   }
@@ -467,6 +495,10 @@ class ReadScreen extends PureComponent {
       });
       this.pageProgressRecording = false;
     });
+  }
+
+  _autoParpareNextChapter = async () => {
+    
   }
 }
 

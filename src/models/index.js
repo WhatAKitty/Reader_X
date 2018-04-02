@@ -9,6 +9,8 @@ import Chapter from './Chapter.model';
 
 const v1 = 0;
 const v2 = 2;
+const v3 = 3;
+const v4 = 4;
 
 let singletonRealm = undefined;
 const getRealm = async () => {
@@ -19,7 +21,7 @@ const getRealm = async () => {
 
   return await Realm.open({
     schema: [Book, Shelf, Chapter],
-    schemaVersion: v2,
+    schemaVersion: v4,
     migration: (oldRealm, newRealm) => {
       console.log(oldRealm.schemaVersion)
       if (oldRealm.schemaVersion < v2) {
@@ -29,6 +31,14 @@ const getRealm = async () => {
           const oldBook = oldBooks[i];
           const newBook = newBooks[i];
           newBook.lastReadedChapterName = `${oldBook.lastReadedChapter}`;
+        }
+      } else if (oldRealm.schemaVersion < v4) {
+        // delete chapter _id
+        // add chapter index
+        const newChapters = newRealm.objects('Chapter');
+        for (let i = 0; i < newChapters.length; i++) {
+          const newChapter = newChapters[i];
+          newChapter.index = i;
         }
       }
     },
