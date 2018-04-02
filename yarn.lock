@@ -4817,9 +4817,9 @@ readable-stream@~1.1.9:
     isarray "0.0.1"
     string_decoder "~0.10.x"
 
-realm@^2.3.3:
-  version "2.3.3"
-  resolved "https://registry.yarnpkg.com/realm/-/realm-2.3.3.tgz#dd9dc0137f95b1701654ba9193928d52eac4239d"
+realm@2.2.18:
+  version "2.2.18"
+  resolved "https://registry.yarnpkg.com/realm/-/realm-2.2.18.tgz#220ab9fce9d806e4a1dad41717a430d3a81b82fd"
   dependencies:
     command-line-args "^4.0.6"
     decompress "^4.2.0"
@@ -4833,7 +4833,7 @@ realm@^2.3.3:
     request "^2.78.0"
     stream-counter "^1.0.0"
     sync-request "^3.0.1"
-    url-parse "^1.2.0"
+    url-parse "^1.1.7"
 
 realpath-native@^1.0.0:
   version "1.0.0"
@@ -5627,7 +5627,7 @@ unpipe@~1.0.0:
   version "1.0.0"
   resolved "http://registry.npm.taobao.org/unpipe/download/unpipe-1.0.0.tgz#b2bf4ee8514aae6165b4817829d21b2ef49904ec"
 
-url-parse@^1.2.0:
+url-parse@^1.1.7:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/url-parse/-/url-parse-1.2.0.tgz#3a19e8aaa6d023ddd27dcc44cb4fc8f7fec23986"
   dependencies:
