@@ -15,7 +15,7 @@ import {
 
 import { Icon, Button } from 'react-native-elements';
 import { HeaderBackButton } from 'react-navigation';
-import { Pages } from '../../components/ReactNativePages';
+import { Pages as ReadPager } from '../../components/ReactNativePages';
 import { iOSUIKitTall, iOSColors } from 'react-native-typography'
 
 import BottomNav from './BottomNav';
@@ -28,6 +28,7 @@ import constants from '../../utils/constants';
 
 import styles from './index.style';
 import { getTheme, moonTheme, defaultTheme } from './ReaderTheme.style';
+import { Promise } from 'core-js';
 
 const { STATUS } = constants;
 
@@ -84,14 +85,27 @@ class ReadScreen extends PureComponent {
     status: STATUS.READY,
     chapters: [],
     chapterTitle: '加载中',
-    chapterRawContent: undefined,
-    chapterPages: [],
-    currentChapter: 0,
     progress: 0,
-    chapterStyles: {},
     barShow: false,
     theme: null,
   };
+
+  constructor(props) {
+    super(props);
+
+    this.currentChapter = 0;
+    this.allPageIndex = 0;
+
+    /**
+     * {
+     *   51: {
+     *     pages: [],
+     *     progress: 0,
+     *   },
+     * }
+     */
+    this.cachedChapters = {};
+  }
 
   componentDidMount() {
     this._init();
@@ -114,10 +128,10 @@ class ReadScreen extends PureComponent {
     );
   }
 
-  renderChapterPage(pageLines = [], pageIndex) {
-    const { chapterStyles, theme } = this.state;
+  renderChapterPage(chapterIndex, pageLines = [], pageIndex) {
+    const { theme } = this.state;
     return (
-      <TouchableWithoutFeedback key={pageIndex} onPress={this._toggleBar}>
+      <TouchableWithoutFeedback key={`${chapterIndex}-${pageIndex}`} onPress={this._toggleBar}>
         <View
           style={[{
             flex: 1,
@@ -131,7 +145,7 @@ class ReadScreen extends PureComponent {
                 <Text
                   key={`${pageIndex}-${lineIndex}`}
                   numberOfLines={1}
-                  style={[getTheme(this.state.theme).text, chapterStyles]}
+                  style={[getTheme(this.state.theme).text, this.chapterStyles]}
                 >{pageLine}{"\n"}</Text>
               ))
             }
@@ -149,7 +163,7 @@ class ReadScreen extends PureComponent {
       return this.renderNone();
     }
     return (
-      <Pages
+      <ReadPager
         ref="pages"
         style={{
           paddingTop: 0,
@@ -157,14 +171,20 @@ class ReadScreen extends PureComponent {
           paddingBottom: 40,
           paddingLeft: 20,
         }}
-        startPage={this.chapterPageIndex}
         indicatorPosition="none"
         onScrollEnd={this._onPageChanged}
       >
         {
-          this.state.chapterPages.map((pageLines, index) => this.renderChapterPage(pageLines, index))
+          Object.keys(this.cachedChapters)
+            .reduce(
+              (lines, chapterIndex) => {
+                return [...lines, ...this.cachedChapters[chapterIndex].pages.map(
+                  (pageLines, index) => this.renderChapterPage(chapterIndex, pageLines, index)
+                )];
+              }, []
+            )
         }
-      </Pages>
+      </ReadPager>
     )
   }
 
@@ -173,10 +193,15 @@ class ReadScreen extends PureComponent {
       return false;
     }
 
-    const precent = (+this.state.progress).toFixed(1);
+    const cachedChapter = this.cachedChapters[this.currentChapter];
+    if (!cachedChapter) {
+      return false;
+    }
+
+    const precent = (+cachedChapter.progress).toFixed(1);
     return (
       <Fragment>
-        <Text style={styles.footer.text}>{this.chapterPageIndex + 1}/{this.state.chapterPages.length} {precent}%</Text>
+        <Text style={styles.footer.text}>{1}/{cachedChapter.pages.length} {precent}%</Text>
         <Text style={[styles.footer.text, styles.footer.right]}>20:18</Text>
       </Fragment>
     );
@@ -200,6 +225,7 @@ class ReadScreen extends PureComponent {
 
   render() {
     const theme = getTheme(this.state.theme);
+    const title = this.cachedChapters[this.currentChapter] ? this.cachedChapters[this.currentChapter].title : '';
     return (
       <Page
         containerStyle={theme.background}
@@ -210,7 +236,7 @@ class ReadScreen extends PureComponent {
           animation={true}
         />
         <View style={styles.title.wrapper} >
-          <Text style={styles.title.text} >{this.state.chapterTitle}</Text>
+          <Text style={styles.title.text} >{title}</Text>
         </View>
         {this.renderContent()}
         <View style={styles.footer.wrapper}>
@@ -221,6 +247,12 @@ class ReadScreen extends PureComponent {
     );
   }
 
+  /**
+   * 初始化章节内容
+   * 
+   * @see this._recordChapterChange(chapterIndex)
+   * @see this._papareChapter(chapters, chapterIndex)
+   */
   _init = async () => {
     const book = this.props.navigation.state.params.book;
     const { data: chapters, err } = await chapterList(book._id);
@@ -233,31 +265,133 @@ class ReadScreen extends PureComponent {
 
     // fetch realm book info
     const realmBook = await this._getRealmBook();
-    let currentChapter = realmBook.lastReadedChapter;
-    this.chapterPageIndex = realmBook.lastChapterReadPage === null ? 0 : realmBook.lastChapterReadPage;
+    this.currentChapter = realmBook.lastReadedChapter;
 
-    if (!currentChapter || currentChapter === null) {
+    if (!this.currentChapter || this.currentChapter === null) {
       // if current chapter index is null
-      currentChapter = 0;
-      this._recordChapterChange(currentChapter);
-    } else if (currentChapter > (chapters.length - 1)) {
+      this.currentChapter = 0;
+      this._recordChapterChange(this.currentChapter);
+    } else if (this.currentChapter > (chapters.length - 1)) {
       // if current chapter index lager than last chapter index, 
       // reset current chapter index and set into realm database.
-      currentChapter = chapters.length - 1;
-      this._recordChapterChange(currentChapter);
+      this.currentChapter = chapters.length - 1;
+      this._recordChapterChange(this.currentChapter);
+    }
+
+    // init cachedChapters
+    await this._papareChapter(chapters, this.currentChapter);
+    const cachedChapter = this.cachedChapters[this.currentChapter];
+    if (this._shouldPapareChapter(-1)) {
+      await this._papareChapter(chapters, this.currentChapter - 1);
+      this.allPageIndex = this._getPageSize(this.currentChapter, -1, false) + realmBook.lastChapterReadPage;
+    }
+    if (this._shouldPapareChapter(1)) {
+      await this._papareChapter(chapters, this.currentChapter + 1);
     }
 
     // init some data
     this.setState({
       chapters,
-      currentChapter,
       progress: realmBook.progress,
-    }, () => {
-      this._fetchChapterContent(this.state.chapters[currentChapter].link);
-    });
+      status: STATUS.FINISH,
+    }, () => this._resetPagesProgress(this.allPageIndex));
   }
 
-  _fetchChapterContent = async (link) => {
+  /**
+   * 是否应该准备下一章的内容
+   * 
+   * @param direction 翻页方向
+   */
+  _shouldPapareChapter = (direction) => {
+    // 在这章的最后两页，自动加载下一章内容
+    if (direction > 0 && (this.allPageIndex + 1) >= (this._getAllPageSize() - 20)) {
+      return true;
+    } else if (direction < 0 && this.allPageIndex < 2) {
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * 准备下一章内容
+   * 
+   * @see this._fetchChapterContent(chapters, chapterIndex, chapterLink)
+   */
+  _papareChapter = async (chapters, chapterIndex) => {
+    if (this.paparing) {
+      return;
+    }
+    this.paparing = true;
+
+    const oldCachedChapters = this.cachedChapters[chapterIndex];
+    if (oldCachedChapters && !oldCachedChapters.loading) {
+      // 已经缓存过
+      this.paparing = false;
+      return false;
+    }
+
+    await this._fetchChapterContent(chapters, chapterIndex, chapters[chapterIndex].link);
+    this.paparing = false;
+  }
+
+  /**
+   * 当页面发生改变
+   * 
+   * @see this._papareChapter(chapters, chapterIndex)
+   * @see this._recordPageProgress()
+   * @see this._onChapterChange(pre, next)
+   */
+  _onPageChanged = async () => {
+    const oldAllPageIndex = this.allPageIndex;
+    this.allPageIndex = this.refs.pages.progress;
+
+    const cachedChapter = this.cachedChapters[this.currentChapter];
+    if (oldAllPageIndex === this.allPageIndex) {
+      // 位置未发生变化，不触发页面变更事件
+      return;
+    } else if (oldAllPageIndex < this.allPageIndex) {
+      // 下一页
+      if (this._shouldPapareChapter(1)) {
+        this._papareChapter(this.state.chapters, this.currentChapter + 1);
+      }
+    } else if (oldAllPageIndex > this.allPageIndex) {
+      // 上一页
+      if (this._shouldPapareChapter(-1)) {
+        this._papareChapter(this.state.chapters, this.currentChapter - 1);
+      }
+    }
+
+    // 处理章节切换逻辑
+    const chapterPageSize = this._getPageSize(this.currentChapter, -1, true);
+    const chapterPageSizeWithoutCurrent = this._getPageSize(this.currentChapter, -1, false);
+    if ((this.allPageIndex + 1) > chapterPageSize) {
+      this._onChapterChange(this.currentChapter, this.currentChapter + 1);
+      this.currentChapter += 1;
+    } else if ((this.allPageIndex + 1) <= chapterPageSizeWithoutCurrent) {
+      this._onChapterChange(this.currentChapter, this.currentChapter - 1);
+      this.currentChapter -= 1;
+    }
+
+    // record chapter page change
+    this._recordPageProgress();
+  }
+
+  /**
+   * 章节切换逻辑
+   * 
+   * @see this._recordChapterChange(currentChapterIndex)
+   */
+  _onChapterChange = async (pre, next) => {
+    this._recordChapterChange(next);
+  }
+
+  /**
+   * 获取章节内容
+   * 
+   * @see this._processContent(body)
+   */
+  _fetchChapterContent = async (chapters, chapterIndex, link) => {
     // 存在章节缓存，直接返回缓存内容
     const { realm, err } = await getRealm();
     const realmChapter = realm.objectForPrimaryKey('Chapter', link);
@@ -278,85 +412,49 @@ class ReadScreen extends PureComponent {
     }
 
     const { body, title } = chapter;
-    const { chapterPages, styles } = await this._processContent(body);
-    this.setState({
-      status: STATUS.FINISH,
-      chapterTitle: title,
-      chapterRawContent: body,
-      chapterPages,
-      chapterStyles: styles,
-    });
+    const { chapterPages: pages, styles } = await this._processContent(body);
 
-    return chapterPages;
+    const oldCachedChapter = this.cachedChapters[chapterIndex];
+    this.cachedChapters[chapterIndex] = {
+      pages,
+      styles,
+      progress: 0,
+      size: pages.length,
+      title: chapters[chapterIndex].title,
+      raw: body,
+    };
+    // 加载中效果页面，防止网络请求过慢导致的卡顿问题
+    if (!this.cachedChapters[chapterIndex + 1]) {
+      this.cachedChapters[chapterIndex + 1] = {
+        pages: [['加载中']],
+        loading: true,
+        styles,
+        progress: 0,
+        size: 1,
+        title: '加载中',
+        raw: undefined,
+      };
+    }
   }
 
-  _nextChapter = async () => {
-    this._jumpToChapter(this.state.currentChapter + 1);
-  }
-
-  _prevChapter = async () => {
-    this._jumpToChapter(this.state.currentChapter - 1);
-  }
-
-  _jumpToChapter = async (chapterIndex) => {
-    this.setState({
-      status: STATUS.LOADING,
-    }, () => {
-      this._jumpToChapterRaw(chapterIndex, () => {
-        this.setState({
-          status: STATUS.FINISH,
+  /**
+   * 重置页面进度
+   */
+  _resetPagesProgress = (resetPageIndex, callback) => {
+    if (this.refs.pages) {
+      this.refs.pages.resetProgress(resetPageIndex, () => {
+        requestAnimationFrame(() => {
+          this.forceUpdate(callback);
         });
       });
-    });
-  }
-
-  _jumpToChapterRaw = async (chapterIndex, callback = () => { }) => {
-    const { currentChapter, chapters } = this.state;
-    if (chapterIndex < 0 || chapterIndex > (chapters.length - 1) || chapterIndex === currentChapter) {
-      return;
-    }
-
-    const chapterPages = await this._fetchChapterContent(chapters[chapterIndex].link);
-    const isGo = currentChapter < chapterIndex;
-    const resetPageIndex = isGo ? 0 : chapterPages.length - 1;
-    this.setState({
-      currentChapter: chapterIndex,
-      progress: ((currentChapter + 1) / chapters.length * 100).toFixed(2),
-    }, () => {
-      // reset page index in this chapter to reset page index
-      this._resetPagesProgress(this.chapterPageIndex = resetPageIndex, () => {
-        // callback invoke
-        callback();
-      });
-
-      // record chapter change
-      this._recordChapterChange(chapterIndex);
-    });
-  }
-
-  _onPageChanged = async () => {
-    const currentPageIndex = this.refs.pages.progress;
-    const oldPageIndex = this.chapterPageIndex;
-    const pages = this.state.chapterPages.length;
-
-    if (currentPageIndex === 0 && oldPageIndex === 0) {
-      // 第一页重复往左滑，前往前一章
-      this._prevChapter();
-    } else if (currentPageIndex === (pages - 1) && oldPageIndex === (pages - 1)) {
-      // 最后一页重复向右滑，前往后一章
-      this._nextChapter();
-    } else {
-      // 中间，记录当前页的索引
-      this.chapterPageIndex = currentPageIndex;
-      // record chapter page change
-      this._recordPageProgress(this.chapterPageIndex);
     }
   }
 
-  _resetPagesProgress = (resetPageIndex, callback) => {
-    this.refs.pages.resetProgress(resetPageIndex, callback);
-  }
-
+  /**
+   * 解析文本内容
+   * 
+   * @see this._processLine(line, maxLineWords)
+   */
   _processContent = async (text) => {
     const { width: w, height: h } = Dimensions.get('window');
     const theme = getTheme(this.state.theme).text;
@@ -390,6 +488,9 @@ class ReadScreen extends PureComponent {
     };
   }
 
+  /**
+   * 解析行内容
+   */
   _processLine = (line, maxLineWords) => {
     const needNewLine = line.length > maxLineWords;
     const newLines = [];
@@ -409,6 +510,9 @@ class ReadScreen extends PureComponent {
     return newLines;
   }
 
+  /**
+   * 切换显示工具栏
+   */
   _toggleBar = () => {
     const barShow = !this.state.barShow;
     this.setState({
@@ -419,16 +523,22 @@ class ReadScreen extends PureComponent {
     });
   }
 
+  /**
+   * 当阅读背景改变主题的时候
+   */
   _onChangeBackgroundColor = key => {
     this.setState({
       theme: key,
     });
   }
 
+  /**
+   * 当点击章节列表的时候
+   */
   _onCatalogIn = () => {
     this.props.navigation.navigate('Catalog', {
       chapterList: this.state.chapters,
-      chapterIndex: this.state.currentChapter,
+      chapterIndex: this.currentChapter,
       bookName: this.props.navigation.state.params.book.title,
 
       onChapterClicked: (index, chapter) => {
@@ -438,6 +548,9 @@ class ReadScreen extends PureComponent {
     });
   }
 
+  /**
+   * 获取缓存的书本内容
+   */
   _getRealmBook = async () => {
     const { realm, err } = await getRealm();
     const book = this.props.navigation.state.params.book;
@@ -452,16 +565,20 @@ class ReadScreen extends PureComponent {
     return (this.realmBook = realm.objectForPrimaryKey('Book', book._id));
   }
 
-  _recordChapterChange = async (currentChapter) => {
+  /**
+   * 记录章节变更
+   */
+  _recordChapterChange = async (currentChapterIndex) => {
     const { realm, err } = await getRealm();
-    const chapter = this.state.chapters[currentChapter];
+    const chapter = this.state.chapters[currentChapterIndex];
+    const cachedChapter = this.cachedChapters[this.currentChapter];
     const book = await this._getRealmBook();
     const realmChapter = realm.objectForPrimaryKey('Chapter', chapter.link);
     requestAnimationFrame(() => {
       realm.write(() => {
         // 修改图书信息
         book.lastReadedTime = new Date().getTime();
-        book.lastReadedChapter = currentChapter;
+        book.lastReadedChapter = currentChapterIndex;
         book.lastReadedChapterName = chapter.title;
         book.progress = +this.state.progress;
 
@@ -473,15 +590,18 @@ class ReadScreen extends PureComponent {
             bookId: book._id,
             title: chapter.title,
             link: chapter.link,
-            index: currentChapter,
-            content: this.state.chapterRawContent,
+            index: currentChapterIndex,
+            content: cachedChapter.raw,
           });
         }
       });
     });
   }
 
-  _recordPageProgress = async (currentPageIndex) => {
+  /**
+   * 记录章节进度
+   */
+  _recordPageProgress = async () => {
     if (this.pageProgressRecording) {
       return;
     }
@@ -491,16 +611,53 @@ class ReadScreen extends PureComponent {
     const book = await this._getRealmBook();
     requestAnimationFrame(() => {
       realm.write(() => {
-        book.lastChapterReadPage = currentPageIndex;
+        book.lastChapterReadPage = this.allPageIndex - this._getPageSize(this.currentChapter, -1, false);
       });
       this.pageProgressRecording = false;
     });
   }
 
-  _autoParpareNextChapter = async () => {
-    
+  /**
+   * 获取chapterIndex之前或者之后的章节数
+   * 
+   * @param chapterIndex 需要定位的章节索引
+   * @param direction 查询的方向
+   * @param include 是否包含定位章节本身的数量
+   */
+  _getPageSize = (chapterIndex, direction, include = false) => {
+    if (this.preGetPageSize && this.preGetPageSize.key === `${this.cachedChapters.length}-${chapterIndex}-${direction}-${include}`) {
+      return this.preGetPageSize.value;
+    }
+    const start = direction > 0 ? (indclude ? chapterIndex : (chapterIndex + 1)) : 0;
+    const end = direction > 0 ? (this.cachedChapters.length - 1) : (include ? chapterIndex : (chapterIndex - 1));
+    const pageSize = Object.keys(this.cachedChapters)
+      .filter(key => key >= start && key <= end)
+      .map(key => this.cachedChapters[key])
+      .reduce((count, sub) => count + sub.size, 0);
+    this.preGetPageSize = {
+      key: `${this.cachedChapters.length}-${chapterIndex}-${direction}-${include}`,
+      value: pageSize,
+    };
+    return pageSize;
+  }
+
+  /**
+   * 获取所有的页面数
+   */
+  _getAllPageSize = () => {
+    if (this.preGetAllPageSize && this.preGetAllPageSize.key === this.cachedChapters.length) {
+      return this.preGetAllPageSize.value;
+    }
+    const pageSize = Object.keys(this.cachedChapters)
+      .map(key => this.cachedChapters[key])
+      .reduce((count, sub) => count + sub.size, 0);
+
+    this.preGetAllPageSize = {
+      key: this.cachedChapters.length,
+      value: pageSize,
+    };
+    return pageSize;
   }
 }
-
 
 export default ReadScreen;
