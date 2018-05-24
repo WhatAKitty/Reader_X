@@ -121,6 +121,9 @@ class ShelfScreen extends Component {
     );
   }
 
+  /**
+   * @issue 临时增加`await list()`无用代码防止出现一直加载中的情况。具体原因暂不清楚。
+   */
   _onFetch = async () => {
     await list();
     if (this.shelfList) {
