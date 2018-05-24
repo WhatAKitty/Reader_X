@@ -3,6 +3,7 @@ package com.reader_x;
 import android.app.Application;
 
 import com.facebook.react.ReactApplication;
+import com.robinpowered.react.ScreenBrightness.ScreenBrightnessPackage;
 import com.oblador.vectoricons.VectorIconsPackage;
 import io.realm.react.RealmReactPackage;
 import com.oblador.vectoricons.VectorIconsPackage;
@@ -31,6 +32,7 @@ public class MainApplication extends Application implements ReactApplication {
     protected List<ReactPackage> getPackages() {
       return Arrays.<ReactPackage>asList(
           new MainReactPackage(),
+            new ScreenBrightnessPackage(),
             new RNBottomSheetPackage(),
             new RealmReactPackage(),
             new VectorIconsPackage()

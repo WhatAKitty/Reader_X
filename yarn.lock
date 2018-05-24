@@ -4632,6 +4632,10 @@ react-native-safe-area-view@^0.7.0:
   dependencies:
     hoist-non-react-statics "^2.3.1"
 
+react-native-screen-brightness@^0.3.2:
+  version "0.3.2"
+  resolved "https://registry.yarnpkg.com/react-native-screen-brightness/-/react-native-screen-brightness-0.3.2.tgz#b5e393712985948caa8f37c3f0857c149ba73276"
+
 react-native-scrollable-mixin@^1.0.1:
   version "1.0.1"
   resolved "http://registry.npm.taobao.org/react-native-scrollable-mixin/download/react-native-scrollable-mixin-1.0.1.tgz#34a32167b64248594154fd0d6a8b03f22740548e"

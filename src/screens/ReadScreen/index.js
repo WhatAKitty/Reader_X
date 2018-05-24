@@ -15,6 +15,7 @@ import {
 
 import { Icon, Button } from 'react-native-elements';
 import { HeaderBackButton } from 'react-navigation';
+import ScreenBrightness from 'react-native-screen-brightness';
 import { Pages as ReadPager } from '../../components/ReactNativePages';
 import { iOSUIKitTall, iOSColors } from 'react-native-typography'
 
@@ -596,6 +597,10 @@ class ReadScreen extends PureComponent {
     this.setState({
       theme: key,
     });
+    if (key === moonTheme) {
+      // 夜间模式，调低亮度
+      ScreenBrightness.setBrightness(0.2);
+    }
   }
 
   /**
