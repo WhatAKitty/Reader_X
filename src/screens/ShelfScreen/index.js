@@ -80,7 +80,7 @@ class ShelfScreen extends Component {
           containerViewStyle={styles.readMore.button.wrapper}
           buttonStyle={[styles.readMore.button.button, { borderColor: theme.styles.variables.colors.main }]}
           title="浏览记录"
-          titleStyle={{ color: theme.styles.variables.colors.main, fontSize: styles.readMore.button.fontSize }}
+          textStyle={{ color: theme.styles.variables.colors.main, fontSize: styles.readMore.button.fontSize }}
           iconRight={{ name: 'chevron-right', color: theme.styles.variables.colors.main, style: styles.readMore.button.chevron }}
           onPress={() => {
             this.props.navigation.navigate('History');

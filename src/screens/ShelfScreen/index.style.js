@@ -62,15 +62,18 @@ export default {
     },
     button: {
       wrapper: {
-        height: 10,
+        height: 25,
+        width: 86,
+        borderRadius: 22,
       },
       button: {
         borderWidth: 1,
         borderColor: colors.main,
         backgroundColor: colors.contrast,
-        height: 10,
+        height: 25,
         width: 86,
         borderRadius: 22,
+        padding: 0,
       },
       chevron: {
         marginLeft: 0,
