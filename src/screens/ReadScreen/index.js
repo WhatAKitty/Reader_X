@@ -225,7 +225,6 @@ class ReadScreen extends PureComponent {
 
   render() {
     const theme = getTheme(this.state.theme);
-    const title = this.cachedChapters[this.currentChapter] ? this.cachedChapters[this.currentChapter].title : '';
     return (
       <Page
         containerStyle={theme.background}
@@ -236,7 +235,7 @@ class ReadScreen extends PureComponent {
           animation={true}
         />
         <View style={styles.title.wrapper} >
-          <Text style={styles.title.text} >{title}</Text>
+          <Text style={styles.title.text} >{this.state.chapterTitle}</Text>
         </View>
         {this.renderContent()}
         <View style={styles.footer.wrapper}>
@@ -252,6 +251,8 @@ class ReadScreen extends PureComponent {
    * 
    * @see this._recordChapterChange(chapterIndex)
    * @see this._papareChapter(chapters, chapterIndex)
+   * 
+   * @issue 如果在最后一页“没有了，去看看别的”页面退出阅读界面，再进入仍旧是该页面，需要优化
    */
   _init = async () => {
     const book = this.props.navigation.state.params.book;
@@ -266,6 +267,7 @@ class ReadScreen extends PureComponent {
     // fetch realm book info
     const realmBook = await this._getRealmBook();
     this.currentChapter = realmBook.lastReadedChapter;
+    this.allPageIndex = realmBook.lastChapterReadPage;
 
     if (!this.currentChapter || this.currentChapter === null) {
       // if current chapter index is null
@@ -281,11 +283,11 @@ class ReadScreen extends PureComponent {
     // init cachedChapters
     await this._papareChapter(chapters, this.currentChapter);
     const cachedChapter = this.cachedChapters[this.currentChapter];
-    if (this._shouldPapareChapter(-1)) {
+    if (this._shouldPapareChapter(-1, chapters)) {
       await this._papareChapter(chapters, this.currentChapter - 1);
       this.allPageIndex = this._getPageSize(this.currentChapter, -1, false) + realmBook.lastChapterReadPage;
     }
-    if (this._shouldPapareChapter(1)) {
+    if (this._shouldPapareChapter(1, chapters)) {
       await this._papareChapter(chapters, this.currentChapter + 1);
     }
 
@@ -294,15 +296,80 @@ class ReadScreen extends PureComponent {
       chapters,
       progress: realmBook.progress,
       status: STATUS.FINISH,
+      chapterTitle: cachedChapter.title,
     }, () => this._resetPagesProgress(this.allPageIndex));
   }
 
   /**
-   * 是否应该准备下一章的内容
+   * 当页面发生改变
+   * 
+   * @see this._papareChapter(chapters, chapterIndex)
+   * @see this._recordPageProgress()
+   * @see this._onChapterChange(pre, next)
+   */
+  _onPageChanged = async () => {
+    const oldAllPageIndex = this.allPageIndex;
+    this.allPageIndex = this.refs.pages.progress;
+
+    const cachedChapter = this.cachedChapters[this.currentChapter];
+    if (oldAllPageIndex === this.allPageIndex) {
+      // 位置未发生变化，不触发页面变更事件
+      return;
+    } else if (oldAllPageIndex < this.allPageIndex) {
+      // 下一页
+      if (this._shouldPapareChapter(1)) {
+        this._papareChapter(this.state.chapters, this.currentChapter + 1);
+      }
+    } else if (oldAllPageIndex > this.allPageIndex) {
+      // 上一页
+      if (this._shouldPapareChapter(-1)) {
+        this._papareChapter(this.state.chapters, this.currentChapter - 1);
+      }
+    }
+
+    // 处理章节切换逻辑
+    const chapterPageSize = this._getPageSize(this.currentChapter, -1, true);
+    const chapterPageSizeWithoutCurrent = this._getPageSize(this.currentChapter, -1, false);
+    if ((this.currentChapter + 1) <= (this.state.chapters.length - 1)
+      && (this.allPageIndex + 1) > chapterPageSize) {
+      this._onChapterChange(this.currentChapter, this.currentChapter + 1);
+    } else if ((this.currentChapter - 1) >= 0
+      && (this.allPageIndex + 1) <= chapterPageSizeWithoutCurrent) {
+      this._onChapterChange(this.currentChapter, this.currentChapter - 1);
+    }
+
+    if (this.currentChapter >= 0 && this.currentChapter <= (this.state.chapters.length - 1)) {
+      // record chapter page change
+      this._recordPageProgress();
+    }
+
+  }
+
+  /**
+   * 章节切换逻辑
+   * 
+   * @see this._recordChapterChange(currentChapterIndex)
+   */
+  _onChapterChange = async (pre, next) => {
+    this._recordChapterChange(this.currentChapter = next);
+    // 更改标题
+    requestAnimationFrame(() => this.setState({
+      chapterTitle: this.cachedChapters[this.currentChapter].title,
+    }));
+  }
+
+  /**
+   * 是否应该准备前一章或下一章的内容
    * 
    * @param direction 翻页方向
    */
-  _shouldPapareChapter = (direction) => {
+  _shouldPapareChapter = (direction, chapters = this.state.chapters) => {
+    if ((this.currentChapter - 1) <= 0 || (this.currentChapter + 1) >= (chapters.length - 1)) {
+      // 前一章为第一章或后一章为最后一章不加载
+      console.log('0 or last')
+      return false;
+    }
+    console.log('should papare chapter ', this.currentChapter + 1, chapters.length)
     // 在这章的最后两页，自动加载下一章内容
     if (direction > 0 && (this.allPageIndex + 1) >= (this._getAllPageSize() - 20)) {
       return true;
@@ -336,57 +403,6 @@ class ReadScreen extends PureComponent {
   }
 
   /**
-   * 当页面发生改变
-   * 
-   * @see this._papareChapter(chapters, chapterIndex)
-   * @see this._recordPageProgress()
-   * @see this._onChapterChange(pre, next)
-   */
-  _onPageChanged = async () => {
-    const oldAllPageIndex = this.allPageIndex;
-    this.allPageIndex = this.refs.pages.progress;
-
-    const cachedChapter = this.cachedChapters[this.currentChapter];
-    if (oldAllPageIndex === this.allPageIndex) {
-      // 位置未发生变化，不触发页面变更事件
-      return;
-    } else if (oldAllPageIndex < this.allPageIndex) {
-      // 下一页
-      if (this._shouldPapareChapter(1)) {
-        this._papareChapter(this.state.chapters, this.currentChapter + 1);
-      }
-    } else if (oldAllPageIndex > this.allPageIndex) {
-      // 上一页
-      if (this._shouldPapareChapter(-1)) {
-        this._papareChapter(this.state.chapters, this.currentChapter - 1);
-      }
-    }
-
-    // 处理章节切换逻辑
-    const chapterPageSize = this._getPageSize(this.currentChapter, -1, true);
-    const chapterPageSizeWithoutCurrent = this._getPageSize(this.currentChapter, -1, false);
-    if ((this.allPageIndex + 1) > chapterPageSize) {
-      this._onChapterChange(this.currentChapter, this.currentChapter + 1);
-      this.currentChapter += 1;
-    } else if ((this.allPageIndex + 1) <= chapterPageSizeWithoutCurrent) {
-      this._onChapterChange(this.currentChapter, this.currentChapter - 1);
-      this.currentChapter -= 1;
-    }
-
-    // record chapter page change
-    this._recordPageProgress();
-  }
-
-  /**
-   * 章节切换逻辑
-   * 
-   * @see this._recordChapterChange(currentChapterIndex)
-   */
-  _onChapterChange = async (pre, next) => {
-    this._recordChapterChange(next);
-  }
-
-  /**
    * 获取章节内容
    * 
    * @see this._processContent(body)
@@ -413,8 +429,6 @@ class ReadScreen extends PureComponent {
 
     const { body, title } = chapter;
     const { chapterPages: pages, styles } = await this._processContent(body);
-
-    const oldCachedChapter = this.cachedChapters[chapterIndex];
     this.cachedChapters[chapterIndex] = {
       pages,
       styles,
@@ -423,8 +437,24 @@ class ReadScreen extends PureComponent {
       title: chapters[chapterIndex].title,
       raw: body,
     };
+
+    const oldCachedChapter = this.cachedChapters[chapterIndex];
+    if (oldCachedChapter && oldCachedChapter.loading) {
+      requestAnimationFrame(() => this.forceUpdate());
+    }
+
     // 加载中效果页面，防止网络请求过慢导致的卡顿问题
-    if (!this.cachedChapters[chapterIndex + 1]) {
+    if (this.currentChapter >= (this.state.chapters.length - 1)) {
+      this.cachedChapters[chapterIndex + 1] = {
+        pages: [['没有了，去看看别的吧']],
+        loading: true,
+        styles,
+        progress: 0,
+        size: 1,
+        title: '',
+        raw: undefined,
+      };
+    } else if (!this.cachedChapters[chapterIndex + 1]) {
       this.cachedChapters[chapterIndex + 1] = {
         pages: [['加载中']],
         loading: true,
@@ -511,6 +541,44 @@ class ReadScreen extends PureComponent {
   }
 
   /**
+   * 跳转到某个章节
+   * 
+   * 注意：跳转后，缓存清空，重新初始化
+   */
+  _jumpToChapter = async (chapterIndex) => {
+    const chapters = this.state.chapters;
+    if (chapterIndex < 0 || chapterIndex > (chapters.length - 1)) {
+      alert('不存在该章节');
+      return false;
+    }
+
+    this.setState({
+      status: STATUS.LOADING,
+    }, async () => {
+      // reset cached chapters and some page index
+      this.cachedChapters = {};
+      this.currentChapter = chapterIndex;
+      this.allPageIndex = 0;
+
+      // init cachedChapters
+      await this._papareChapter(chapters, this.currentChapter);
+      const cachedChapter = this.cachedChapters[this.currentChapter];
+      if (this._shouldPapareChapter(-1)) {
+        await this._papareChapter(chapters, this.currentChapter - 1);
+        this.allPageIndex = this._getPageSize(this.currentChapter, -1, false);
+      }
+      if (this._shouldPapareChapter(1)) {
+        await this._papareChapter(chapters, this.currentChapter + 1);
+      }
+
+      // init some data
+      this.setState({
+        status: STATUS.FINISH,
+      }, () => this._resetPagesProgress(this.allPageIndex));
+    });
+  }
+
+  /**
    * 切换显示工具栏
    */
   _toggleBar = () => {
@@ -536,6 +604,11 @@ class ReadScreen extends PureComponent {
    * 当点击章节列表的时候
    */
   _onCatalogIn = () => {
+    console.log({
+      chapterList: this.state.chapters,
+      chapterIndex: this.currentChapter,
+      bookName: this.props.navigation.state.params.book.title,
+    })
     this.props.navigation.navigate('Catalog', {
       chapterList: this.state.chapters,
       chapterIndex: this.currentChapter,
