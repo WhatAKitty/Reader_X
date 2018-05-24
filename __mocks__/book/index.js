@@ -1004,7 +1004,6 @@ export default {
   },
   '/api/v1/books/{bookId}/{chapterId}/content': ({ method, url, params, urlparams, headers }) => {
     const urlx = parseInt(urlparams.chapterId);
-    console.log(urlx);
     let all;
     switch(urlx){
     case 247:

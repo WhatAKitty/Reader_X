@@ -5,7 +5,6 @@ export default class getNet {
       let bookChapterLst = `${booklist[i].bookName}_${booklist[i].plantformId}_list`;
       let latech = booklist[i].latestChapter;
       let url = 'https://testdb.leanapp.cn/Analy_x?action=1&url=' + booklist[i].url;
-      // console.log(url);
       this.get(url, bookChapterLst, latech, (latechap) => {
         if (latechap === -1) {
           callback(`[${booklist[i].bookName}]抓取章节失败......`);

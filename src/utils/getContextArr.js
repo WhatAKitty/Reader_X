@@ -64,7 +64,6 @@ function parseContent(str, width, cleanEmptyLine = true) {
       currentLine += s;
       currentLineWidth += sWidth;
     } catch (error) {
-      // console.log(error);
     }
   }
   lines.push(currentLine);

@@ -94,7 +94,6 @@ class ViewPager extends PureComponent {
       onStartShouldSetPanResponderCapture: (evt, gestureState) => true,
       // Claim responder if it's a horizontal pan
       onMoveShouldSetPanResponder: (e, gestureState) => {
-        // console.log(this.props.locked);
         if (Math.abs(gestureState.dx) > Math.abs(gestureState.dy)) {
           if (/* (gestureState.moveX <= this.props.edgeHitWidth ||
               gestureState.moveX >= deviceWidth - this.props.edgeHitWidth) && */
@@ -177,7 +176,6 @@ class ViewPager extends PureComponent {
 
   movePage(step, gs, animate = true, whetherClear = false) {
     let pageCount = this.maxP;
-    // console.log('...'+ pageCount)
     let pageNumber = this.state.currentPage + step;
 
 
@@ -189,7 +187,6 @@ class ViewPager extends PureComponent {
         pageNumber = tmpag - 1;
       }
       this.props.getCurrentPage(pageNumber + 1);
-      // console.log(pageNumber)
       return;
     } else if (pageNumber < 0 && this.state.toprev == 1) {
       this.props.getPrevPage();

@@ -27,13 +27,11 @@ class OrginChangeScreen extends PureComponent {
     }
 
     componentDidMount(){
-      // console.log(this.props.navigation.state.params.chapterList);
       let data = this.props.navigation.state.params;
     }
 
     async fetchContent(bookId, direct) {
       const { err, data } = await chapterList(bookId);
-      console.log(data);
       for(let i = 0,j = data.length;i<j;i++){
         data[i].isDownload = i % 2 ;//测试句
       }

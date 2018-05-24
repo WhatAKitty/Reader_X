@@ -113,7 +113,6 @@ class RankingScreen extends Component {
     const { data: rankBooks, err: rankBooksErr } = await books(id);
 
     if (rankBooksErr) {
-      console.log('load err', rankBooksErr)
       this.setState({
         loadFlag: RefreshState.Failure,
       });

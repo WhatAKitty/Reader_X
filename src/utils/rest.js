@@ -77,7 +77,6 @@ async function accessToken(username, password) {
 
 async function rest(url, options = {}) {
   // const obj = await _pre();
-  // console.log(obj)
 
   // if (obj.err) {
   //   return { err: obj.err };
@@ -97,7 +96,6 @@ async function rest(url, options = {}) {
   }
 
   const error = await parseError(err);
-  // console.log(error);
   return { err: error };
 }
 

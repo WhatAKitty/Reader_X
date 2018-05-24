@@ -33,7 +33,6 @@ class BookList extends Component {
     this.state = {
       booklist: this.props.booklist || [],
       loadingFlag: true,
-      fetchFlag: RefreshState.Idle,
     };
 
     this.renderSimpleInfo = this.renderSimpleInfo.bind(this);
@@ -179,7 +178,6 @@ class BookList extends Component {
           renderItem={this.renderRow}
           ListFooterComponent={this.renderListFooterComponent}
           ItemSeparatorComponent={this.renderSeparator}
-          refreshState={this.state.fetchFlag}
           onHeaderRefresh={this._onHeaderRefresh}
         />
       </List>
@@ -187,26 +185,17 @@ class BookList extends Component {
   }
 
   _onFetch = () => {
-    requestAnimationFrame(() => {
-      this.setState({ fetchFlag: RefreshState.HeaderRefreshing }, async () => {
-        const { err, data } = await this.props.datasource();
-        if (err) {
-          this.setState({
-            fetchFlag: RefreshState.Failure,
-          });
-          return;
-        }
-        if (!data || !data.length) {
-          this.setState({
-            fetchFlag: RefreshState.NoMoreData,
-          });
-          return;
-        }
+    requestAnimationFrame(async () => {
+      const { err, data } = await this.props.datasource();
+      if (err) {
+        return;
+      }
+      if (!data || !data.length) {
+        return;
+      }
 
-        this.setState({
-          booklist: data,
-          fetchFlag: RefreshState.Idle,
-        });
+      this.setState({
+        booklist: data,
       });
     });
   }

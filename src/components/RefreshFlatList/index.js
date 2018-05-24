@@ -56,7 +56,7 @@ class RefreshFlatList extends PureComponent {
 }
 
 RefreshFlatList.propTypes = {
-  refreshState: PropTypes.oneOf(Object.values(RefreshState)).isRequired,
+  refreshState: PropTypes.oneOf(Object.values(RefreshState)),
   onHeaderRefresh: PropTypes.func.isRequired,
   data: PropTypes.oneOfType([PropTypes.object, PropTypes.array]).isRequired,
 

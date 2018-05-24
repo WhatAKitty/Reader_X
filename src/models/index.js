@@ -1,6 +1,3 @@
-console.log(Realm.defaultPath)
-console.log(Realm.schemaVersion(Realm.defaultPath))
-
 import Realm, { SortDescriptor } from 'realm';
 
 import Book from './Book.model';
@@ -23,7 +20,6 @@ const getRealm = async () => {
     schema: [Book, Shelf, Chapter],
     schemaVersion: v4,
     migration: (oldRealm, newRealm) => {
-      console.log(oldRealm.schemaVersion)
       if (oldRealm.schemaVersion < v2) {
         const oldBooks = oldRealm.objects('Book');
         const newBooks = newRealm.objects('Book');

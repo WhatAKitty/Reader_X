@@ -23,7 +23,6 @@ class SourceChangeScreen extends PureComponent {
   constructor(props) {
     super(props);
     tht = this;
-    // console.log(this.props.navigation.state.params.bookNum);
 
     this.currentChapterIndex = this.props.navigation.state.params.bookNum || 0;
 

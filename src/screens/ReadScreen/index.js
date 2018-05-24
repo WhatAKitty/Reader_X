@@ -366,10 +366,8 @@ class ReadScreen extends PureComponent {
   _shouldPapareChapter = (direction, chapters = this.state.chapters) => {
     if ((this.currentChapter - 1) <= 0 || (this.currentChapter + 1) >= (chapters.length - 1)) {
       // 前一章为第一章或后一章为最后一章不加载
-      console.log('0 or last')
       return false;
     }
-    console.log('should papare chapter ', this.currentChapter + 1, chapters.length)
     // 在这章的最后两页，自动加载下一章内容
     if (direction > 0 && (this.allPageIndex + 1) >= (this._getAllPageSize() - 20)) {
       return true;
@@ -604,11 +602,6 @@ class ReadScreen extends PureComponent {
    * 当点击章节列表的时候
    */
   _onCatalogIn = () => {
-    console.log({
-      chapterList: this.state.chapters,
-      chapterIndex: this.currentChapter,
-      bookName: this.props.navigation.state.params.book.title,
-    })
     this.props.navigation.navigate('Catalog', {
       chapterList: this.state.chapters,
       chapterIndex: this.currentChapter,

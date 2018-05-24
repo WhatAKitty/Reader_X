@@ -122,6 +122,7 @@ class ShelfScreen extends Component {
   }
 
   _onFetch = async () => {
+    await list();
     if (this.shelfList) {
       return { data: this.shelfList.map(shelf => shelf.book) };
     }

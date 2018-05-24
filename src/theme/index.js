@@ -57,7 +57,7 @@ class ThemeProvider extends Component {
         this.active(value);
       }
     } catch (error) {
-      console.error(`change theme error ${JSON.stringify(error)}`);
+      // TODO
     }
   }
 
@@ -70,7 +70,7 @@ class ThemeProvider extends Component {
       try {
         await AsyncStorage.setItem('@Reader_X:theme', name);
       } catch (error) {
-        console.error(`set theme ${name} error ${JSON.stringify(error)}`);
+        // TODO
       }
     });
   }
