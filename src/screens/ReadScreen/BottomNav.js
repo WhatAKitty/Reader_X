@@ -9,7 +9,7 @@ import {
 import { Icon, Slider } from 'react-native-elements';
 import ScreenBrightness from 'react-native-screen-brightness';
 
-import getRealm, { SortDescriptor } from '../../models';
+import getRealm from '../../models';
 
 import styles from './BottomNav.style';
 import readerThemes from './ReaderTheme.style';
@@ -156,8 +156,11 @@ class BottomNav extends Component {
 
   _onChangeBrightness = brightness => {
     requestAnimationFrame(async () => {
-      const { realm, err } = await getRealm();
+      // 设置亮度
+      ScreenBrightness.setBrightness(brightness);
+
       // 设置
+      const { realm, err } = await getRealm();
       this.setState({
         brightness,
       });

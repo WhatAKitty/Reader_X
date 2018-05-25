@@ -15,7 +15,6 @@ import {
 
 import { Icon, Button } from 'react-native-elements';
 import { HeaderBackButton } from 'react-navigation';
-import ScreenBrightness from 'react-native-screen-brightness';
 import { Pages as ReadPager } from '../../components/ReactNativePages';
 import { iOSUIKitTall, iOSColors } from 'react-native-typography'
 
@@ -110,6 +109,7 @@ class ReadScreen extends PureComponent {
 
   componentDidMount() {
     this._init();
+    this._themeInit();
   }
 
   renderNone() {
@@ -245,6 +245,19 @@ class ReadScreen extends PureComponent {
         {this.renderBottomNav()}
       </Page>
     );
+  }
+
+  /**
+   * 初始化主题
+   */
+  _themeInit = async () => {
+    const { realm, err } = await getRealm();
+    const realmConfig = realm.objectForPrimaryKey('Config', 'theme');
+    if (realmConfig) {
+      this.setState({
+        theme: realmConfig.value,
+      });
+    }
   }
 
   /**
@@ -594,13 +607,20 @@ class ReadScreen extends PureComponent {
    * 当阅读背景改变主题的时候
    */
   _onChangeBackgroundColor = key => {
-    this.setState({
-      theme: key,
+    requestAnimationFrame(async () => {
+      this.setState({
+        theme: key,
+      });
+
+      // 将主题写入数据库
+      const { realm, err } = await getRealm();
+      realm.write(() => {
+        realm.create('Config', {
+          key: 'theme',
+          value: key,
+        }, true);
+      });
     });
-    if (key === moonTheme) {
-      // 夜间模式，调低亮度
-      ScreenBrightness.setBrightness(0);
-    }
   }
 
   /**
