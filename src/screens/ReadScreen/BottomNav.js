@@ -155,22 +155,22 @@ class BottomNav extends Component {
   }
 
   _onChangeBrightness = brightness => {
-    requestAnimationFrame(async () => {
-      // 设置亮度
-      ScreenBrightness.setBrightness(brightness);
-
+    requestAnimationFrame(() => {
       // 设置
-      const { realm, err } = await getRealm();
       this.setState({
         brightness,
-      });
+      }, async () => {
+        // 设置亮度
+        ScreenBrightness.setBrightness(brightness);
 
-      // 写入数据库
-      realm.write(() => {
-        realm.create('Config', {
-          key: 'brightness',
-          value: `${brightness}`,
-        }, true);
+        // 写入数据库
+        const { realm, err } = await getRealm();
+        realm.write(() => {
+          realm.create('Config', {
+            key: 'brightness',
+            value: `${brightness}`,
+          }, true);
+        });
       });
     });
   }

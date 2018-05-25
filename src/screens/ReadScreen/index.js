@@ -607,18 +607,18 @@ class ReadScreen extends PureComponent {
    * 当阅读背景改变主题的时候
    */
   _onChangeBackgroundColor = key => {
-    requestAnimationFrame(async () => {
+    requestAnimationFrame(() => {
       this.setState({
         theme: key,
-      });
-
-      // 将主题写入数据库
-      const { realm, err } = await getRealm();
-      realm.write(() => {
-        realm.create('Config', {
-          key: 'theme',
-          value: key,
-        }, true);
+      }, async () => {
+        // 将主题写入数据库
+        const { realm, err } = await getRealm();
+        realm.write(() => {
+          realm.create('Config', {
+            key: 'theme',
+            value: key,
+          }, true);
+        });
       });
     });
   }
