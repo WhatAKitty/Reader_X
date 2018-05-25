@@ -599,7 +599,7 @@ class ReadScreen extends PureComponent {
     });
     if (key === moonTheme) {
       // 夜间模式，调低亮度
-      ScreenBrightness.setBrightness(0.2);
+      ScreenBrightness.setBrightness(0);
     }
   }
 

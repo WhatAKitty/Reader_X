@@ -1,5 +1,6 @@
 import Realm, { SortDescriptor } from 'realm';
 
+import Config from './Config.model';
 import Book from './Book.model';
 import Shelf from './Shelf.model';
 import Chapter from './Chapter.model';
@@ -8,6 +9,7 @@ const v1 = 0;
 const v2 = 2;
 const v3 = 3;
 const v4 = 4;
+const v5 = 5; // 增加了Config表
 
 let singletonRealm = undefined;
 const getRealm = async () => {
@@ -17,8 +19,8 @@ const getRealm = async () => {
   }
 
   return await Realm.open({
-    schema: [Book, Shelf, Chapter],
-    schemaVersion: v4,
+    schema: [Config, Book, Shelf, Chapter],
+    schemaVersion: v5,
     migration: (oldRealm, newRealm) => {
       if (oldRealm.schemaVersion < v2) {
         const oldBooks = oldRealm.objects('Book');

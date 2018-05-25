@@ -1,10 +1,11 @@
 import { Dimensions } from 'react-native';
 import { iOSColors } from 'react-native-typography'
+import { theme } from '../../theme';
 
 const { width } = Dimensions.get('window');
 
 export default {
-  Fotter: {
+  container: {
     height: 50,
     paddingTop: 6,
     backgroundColor: '#000',
@@ -16,18 +17,68 @@ export default {
     left: 0,
     flexDirection: 'row'
   },
-  Setting: {
-    height: 80,
-    backgroundColor: '#000',
-    zIndex: 2,
-    opacity: 0.85,
-    position: 'absolute',
-    width: width,
-    bottom: 50,
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    right: 0,
+  tool: {
+    container: {
+      flex: 1,
+    },
+    icon: {
+      color: iOSColors.white,
+      size: 24,
+    },
+    text: {
+      color: '#fff',
+      textAlign: 'center',
+      fontSize: 12,
+    },
+  },
+  setting: {
+    container: {
+      backgroundColor: '#000',
+      zIndex: 2,
+      opacity: 0.85,
+      position: 'absolute',
+      width: width,
+      bottom: 50,
+      flexDirection: 'column',
+      alignItems: 'center',
+      right: 0,
+    },
+    brightness: {
+      container: {
+        flex: 1,
+        height: 70,
+        width: width,
+        alignItems: "center",
+        justifyContent: "center",
+        flexDirection: 'row',
+      },
+      icon: {
+        width: width * 3 / 20,
+        justifyContent: 'center',
+        alignItems: 'center',
+      },
+      slider: {
+        flex: 1,
+        width: width * 14 / 20,
+        alignItems: "stretch",
+        justifyContent: "center",
+      },
+      sliderThumb: {
+        backgroundColor: iOSColors.white,
+      },
+      sliderTrack: {
+        backgroundColor: theme.styles.variables.colors.main,
+      },
+    },
+    themes: {
+      container: {
+        width: width,
+        height: 70,
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        alignItems: 'center',
+      },
+    },
   },
   roundx: {
     width: 30,
@@ -43,10 +94,6 @@ export default {
   check: {
     size: 20,
     color: iOSColors.red,
-  },
-
-  FotterItems: {
-    color: '#fff', textAlign: 'center', fontSize: 12,
   },
 
 };
