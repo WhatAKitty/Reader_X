@@ -14,6 +14,7 @@ import { recommends } from '../../services/book'
 
 const { width } = Dimensions.get('window');
 const padding = (width - 315) / 2;
+const bannerHeight = width / 1080 * 325;
 class RecommandScreen extends Component {
   static navigationOptions = ({ navigation, screenProps }) => {
     let toEnd = true;
@@ -80,7 +81,7 @@ class RecommandScreen extends Component {
     return (
       <Page>
         <ScrollView>
-          <Pages containerStyle={{ height: 113 }}>
+          <Pages containerStyle={{ height: bannerHeight }}>
             {
               this.state.covers.map(this.renderCovers.bind(this))
             }
