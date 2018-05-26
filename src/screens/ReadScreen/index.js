@@ -442,6 +442,8 @@ class ReadScreen extends PureComponent {
 
     const { body, title } = chapter;
     const { chapterPages: pages, styles } = await this._processContent(body);
+    const oldCachedChapter = this.cachedChapters[chapterIndex];
+    const needUpdated = 'undefined' === typeof oldCachedChapter || oldCachedChapter.loading;
     this.cachedChapters[chapterIndex] = {
       pages,
       styles,
@@ -450,14 +452,10 @@ class ReadScreen extends PureComponent {
       title: chapters[chapterIndex].title,
       raw: body,
     };
-
-    const oldCachedChapter = this.cachedChapters[chapterIndex];
-    if (oldCachedChapter && oldCachedChapter.loading) {
-      requestAnimationFrame(() => this.forceUpdate());
-    }
+    needUpdated && requestAnimationFrame(() => this.forceUpdate());
 
     // 加载中效果页面，防止网络请求过慢导致的卡顿问题
-    if (this.currentChapter >= (this.state.chapters.length - 1)) {
+    if (this.currentChapter >= (chapters.length - 1)) {
       this.cachedChapters[chapterIndex + 1] = {
         pages: [['没有了，去看看别的吧']],
         loading: true,
