@@ -80,7 +80,7 @@ class RecommandScreen extends Component {
     return (
       <Page>
         <ScrollView>
-          <Pages containerStyle={{ height: 150 }}>
+          <Pages containerStyle={{ height: 113 }}>
             {
               this.state.covers.map(this.renderCovers.bind(this))
             }
