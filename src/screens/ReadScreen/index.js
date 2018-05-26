@@ -263,7 +263,8 @@ class ReadScreen extends PureComponent {
   /**
    * 初始化章节内容
    * 
-   * @see this._recordChapterChange(chapterIndex)
+   * @see this._recordChapterChange(chapterIndex, chapters)
+   * @see this._shouldPapareChapter(direction, chapters)
    * @see this._papareChapter(chapters, chapterIndex)
    * 
    * @issue 如果在最后一页“没有了，去看看别的”页面退出阅读界面，再进入仍旧是该页面，需要优化
@@ -283,15 +284,15 @@ class ReadScreen extends PureComponent {
     this.currentChapter = realmBook.lastReadedChapter;
     this.allPageIndex = realmBook.lastChapterReadPage;
 
-    if (!this.currentChapter || this.currentChapter === null) {
+    if ('undefined' === typeof this.currentChapter || this.currentChapter === null) {
       // if current chapter index is null
       this.currentChapter = 0;
-      this._recordChapterChange(this.currentChapter);
+      this._recordChapterChange(this.currentChapter, realmBook.progress, chapters);
     } else if (this.currentChapter > (chapters.length - 1)) {
       // if current chapter index lager than last chapter index, 
       // reset current chapter index and set into realm database.
       this.currentChapter = chapters.length - 1;
-      this._recordChapterChange(this.currentChapter);
+      this._recordChapterChange(this.currentChapter, realmBook.progress, chapters);
     }
 
     // init cachedChapters
@@ -663,9 +664,9 @@ class ReadScreen extends PureComponent {
   /**
    * 记录章节变更
    */
-  _recordChapterChange = async (currentChapterIndex) => {
+  _recordChapterChange = async (currentChapterIndex, progress, chapters = this.state.chapters) => {
     const { realm, err } = await getRealm();
-    const chapter = this.state.chapters[currentChapterIndex];
+    const chapter = chapters[currentChapterIndex];
     const cachedChapter = this.cachedChapters[this.currentChapter];
     const book = await this._getRealmBook();
     const realmChapter = realm.objectForPrimaryKey('Chapter', chapter.link);
@@ -675,7 +676,7 @@ class ReadScreen extends PureComponent {
         book.lastReadedTime = new Date().getTime();
         book.lastReadedChapter = currentChapterIndex;
         book.lastReadedChapterName = chapter.title;
-        book.progress = +this.state.progress;
+        book.progress = +progress;
 
         // 增加该章节缓存
         if (!realmChapter) {
