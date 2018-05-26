@@ -31,16 +31,6 @@ export async function chapterList(bookId) {
 }
 
 export async function recommends() {
-  let { data, err } = await GET(`${prefix}/recommends`);
-  let books = [];
-  if (!err) {
-    for (let i = 0, j = data.Group.length; i < j; i++) {
-      books.push(...data.Group[i].Data)
-    }
-    data = books;
-    // return { data };
-  }
-
-  return { data, err };
+  return await GET(`${prefix}/recommends`);
 }
 

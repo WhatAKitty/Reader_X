@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Text } from 'react-native';
+import { Text, View, ScrollView, Dimensions, Image, TouchableWithoutFeedback } from 'react-native';
 
 import { NavigationActions } from 'react-navigation';
 import { Icon } from 'react-native-elements';
@@ -7,9 +7,13 @@ import { Icon } from 'react-native-elements';
 import Page from '../../components/Page';
 import BookList, { BookListType } from '../../components/BookList';
 import { RefreshState } from '../../components/RefreshFlatList';
+import { Pages } from '../../components/ReactNativePages';
+import BookGroup from '../../components/BookGroup';
+
 import { recommends } from '../../services/book'
 
-
+const { width } = Dimensions.get('window');
+const padding = (width - 315) / 2;
 class RecommandScreen extends Component {
   static navigationOptions = ({ navigation, screenProps }) => {
     let toEnd = true;
@@ -18,42 +22,90 @@ class RecommandScreen extends Component {
       tabBarLabel: '推荐',
       tabBarIcon: ({ tintColor }) => (
         <Icon
-
           name='colours'
           type='entypo'
           color={tintColor}
-
         />
       ),
     };
   }
-  constructor(props) {
-    super(props);
 
-    this.state = {
-      result: [],
-      loading: false,
-      loadFlag: RefreshState.Idle,
-    }
+  state = {
+    covers: [],
+    groups: [],
+  };
+
+  componentDidMount() {
+    this._init();
+  }
+
+  renderCovers({ _id, pic }, index) {
+    return (
+      <View key={_id} style={{ flex: 1 }}>
+        <TouchableWithoutFeedback
+          onPress={() => {
+            this.props.navigation.navigate('Book', {
+              _id,
+            }, NavigationActions.navigate({
+              routeName: 'Info', params: {
+                BookId: _id,
+              }
+            }));
+          }}
+        >
+          <Image source={{ uri: pic }} resizeMode="cover" style={{
+            width: null,
+            height: null,
+            resizeMode: 'cover',
+            flex: 1,
+          }}/>
+        </TouchableWithoutFeedback>
+      </View>
+    );
+  }
+
+  renderGroup({ title, subTitle, books }, index) {
+    return (
+      <View key={`${index}`} style={{ flex: 1, height: 200, marginTop: 20, marginLeft: padding, marginRight: padding }}>
+        <Text style={{}}>{title}</Text>
+        <BookGroup
+          navigation={this.props.navigation}
+          books={books}
+        />
+      </View>
+    );
   }
 
   render() {
     return (
       <Page>
-        <BookList
-          keyExtractor={(item, index) => `${item.BookId}`}
-          dynamic={true}
-          type={BookListType.Complete}
-          booklist={this.state.result}
-          ListFooterComponent={this.renderFooter}
-          onItemClicked={(item, index) => {
-            this.props.navigation.navigate('Book', item, NavigationActions.navigate({ routeName: 'Info', params: item }));
-          }}
-          datasource={recommends}
-        />
+        <ScrollView>
+          <Pages containerStyle={{ height: 150 }}>
+            {
+              this.state.covers.map(this.renderCovers.bind(this))
+            }
+          </Pages>
+          {
+            this.state.groups.map(this.renderGroup.bind(this))
+          }
+        </ScrollView>
       </Page>
     );
   }
+
+  _init = async () => {
+    const { data, err } = await recommends();
+    if (err) {
+      return;
+    }
+
+    const { covers, groups } = data;
+    this.setState({
+      covers,
+      groups,
+    });
+  }
+
 }
 
 export default RecommandScreen;
