@@ -369,7 +369,7 @@ class ReadScreen extends PureComponent {
    * @see this._recordChapterChange(currentChapterIndex)
    */
   _onChapterChange = async (pre, next) => {
-    this._recordChapterChange(this.currentChapter = next);
+    this.currentChapter = next
     // 更改标题
     InteractionManager.runAfterInteractions(() => this.setState({
       chapterTitle: this.cachedChapters[this.currentChapter].title,
@@ -455,6 +455,7 @@ class ReadScreen extends PureComponent {
       title: chapters[chapterIndex].title,
       raw: body,
     };
+    InteractionManager.runAfterInteractions(() => this._recordChapterChange());
     needUpdated && InteractionManager.runAfterInteractions(() => this.forceUpdate());
 
     // 加载中效果页面，防止网络请求过慢导致的卡顿问题
