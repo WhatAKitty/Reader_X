@@ -10,7 +10,8 @@ import {
   ActionSheetIOS,
   AsyncStorage,
   LayoutAnimation,
-  TouchableWithoutFeedback
+  TouchableWithoutFeedback,
+  InteractionManager,
 } from 'react-native';
 
 import { Icon, Button } from 'react-native-elements';
@@ -370,7 +371,7 @@ class ReadScreen extends PureComponent {
   _onChapterChange = async (pre, next) => {
     this._recordChapterChange(this.currentChapter = next);
     // 更改标题
-    requestAnimationFrame(() => this.setState({
+    InteractionManager.runAfterInteractions(() => this.setState({
       chapterTitle: this.cachedChapters[this.currentChapter].title,
     }));
   }
@@ -454,7 +455,7 @@ class ReadScreen extends PureComponent {
       title: chapters[chapterIndex].title,
       raw: body,
     };
-    needUpdated && requestAnimationFrame(() => this.forceUpdate());
+    needUpdated && InteractionManager.runAfterInteractions(() => this.forceUpdate());
 
     // 加载中效果页面，防止网络请求过慢导致的卡顿问题
     if (this.currentChapter >= (chapters.length - 1)) {
@@ -486,7 +487,7 @@ class ReadScreen extends PureComponent {
   _resetPagesProgress = (resetPageIndex, callback) => {
     if (this.refs.pages) {
       this.refs.pages.resetProgress(resetPageIndex, () => {
-        requestAnimationFrame(() => {
+        InteractionManager.runAfterInteractions(() => {
           this.forceUpdate(callback);
         });
       });
@@ -612,7 +613,7 @@ class ReadScreen extends PureComponent {
    * 当阅读背景改变主题的时候
    */
   _onChangeBackgroundColor = key => {
-    requestAnimationFrame(() => {
+    InteractionManager.runAfterInteractions(() => {
       this.setState({
         theme: key,
       }, async () => {
@@ -670,7 +671,7 @@ class ReadScreen extends PureComponent {
     const cachedChapter = this.cachedChapters[this.currentChapter];
     const book = await this._getRealmBook();
     const realmChapter = realm.objectForPrimaryKey('Chapter', chapter.link);
-    requestAnimationFrame(() => {
+    InteractionManager.runAfterInteractions(() => {
       realm.write(() => {
         // 修改图书信息
         book.lastReadedTime = new Date().getTime();
@@ -705,7 +706,7 @@ class ReadScreen extends PureComponent {
 
     const { realm, err } = await getRealm();
     const book = await this._getRealmBook();
-    requestAnimationFrame(() => {
+    InteractionManager.runAfterInteractions(() => {
       realm.write(() => {
         book.lastChapterReadPage = this.allPageIndex - this._getPageSize(this.currentChapter, -1, false);
       });
