@@ -27,6 +27,7 @@ import getRealm, { SortDescriptor } from '../../models';
 import constants from '../../utils/constants';
 
 import styles from './index.style';
+import { theme } from '../../theme';
 import { getTheme, moonTheme, defaultTheme } from './ReaderTheme.style';
 import { Promise } from 'core-js';
 
@@ -49,33 +50,34 @@ class ReadScreen extends PureComponent {
         />
       ),
       headerRight: (
-        // <View style={styles.common.navRightContainer}>
-        //   <Icon
-        //     containerStyle={styles.common.navButtonContainer}
-        //     name='arrow-downward'
-        //     type='MaterialIcons'
-        //     color={styles.common.navButton.color}
-        //     underlayColor={styles.common.navButton.underlayColor}
-        //     onPress={() => { tht.downChoose(); }}
-        //   />
-        //   <Icon
-        //     containerStyle={styles.common.navButtonContainer}
-        //     name='bubble-chart'//
-        //     type='MaterialIcons'
-        //     color={styles.common.navButton.color}
-        //     underlayColor={styles.common.navButton.underlayColor}
-        //     onPress={() => { tht.sourceChoose(); }}
-        //   />
-        //   <Icon
-        //     containerStyle={styles.common.navButtonContainer}
-        //     name='more-horiz'//bubble-chart
-        //     type='MaterialIcons'
-        //     color={styles.common.navButton.color}
-        //     underlayColor={styles.common.navButton.underlayColor}
-        //     onPress={() => { }}
-        //   />
-        // </View>
-        <View></View>
+        <View style={theme.styles.navRightContainer}>
+          <Icon
+            containerStyle={theme.styles.navButtonContainer}
+            name='arrow-downward'
+            type='MaterialIcons'
+            color={theme.styles.navButton.color}
+            underlayColor={theme.styles.navButton.underlayColor}
+            onPress={() => {
+              // 后台线程缓存所有
+            }}
+          />
+          <Icon
+            containerStyle={theme.styles.navButtonContainer}
+            name='bubble-chart'
+            type='MaterialIcons'
+            color={theme.styles.navButton.color}
+            underlayColor={theme.styles.navButton.underlayColor}
+            onPress={() => { }}
+          />
+          <Icon
+            containerStyle={theme.styles.navButtonContainer}
+            name='more-horiz'//bubble-chart
+            type='MaterialIcons'
+            color={theme.styles.navButton.color}
+            underlayColor={theme.styles.navButton.underlayColor}
+            onPress={() => { }}
+          />
+        </View>
       ),
       tabBarVisible: false,
     };

@@ -5,7 +5,6 @@
 	};
 	objectVersion = 46;
 	objects = {
-
 /* Begin PBXBuildFile section */
 		00C302E51ABCBA2D00DB3ED1 /* libRCTActionSheet.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 00C302AC1ABCB8CE00DB3ED1 /* libRCTActionSheet.a */; };
 		00C302E71ABCBA2D00DB3ED1 /* libRCTGeolocation.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 00C302BA1ABCB90400DB3ED1 /* libRCTGeolocation.a */; };
@@ -632,6 +631,7 @@
 				0A9DF33CA02D404C944648D9 /* SimpleLineIcons.ttf */,
 				29B607969B1547BE8C31677D /* Zocial.ttf */,
 				C8847B7860B04AF9B96F8186 /* libScreenBrightness.a */,
+				A1B6997F50BC4C3ABBBA189D /* libRNBackgroundFetch.a */,
 			);
 			name = "Recovered References";
 			sourceTree = "<group>";
@@ -907,12 +907,12 @@
 					ProjectRef = 0E04A230ED4B488B8B286B51 /* RealmReact.xcodeproj */;
 				},
 				{
-					ProductGroup = 4AE8AE47206F4AFD0000B54A /* Products */;
-					ProjectRef = C55A8CB74D7C4E898A969142 /* RNVectorIcons.xcodeproj */;
-				},
-				{
 					ProductGroup = 4AE8AE0B206F4AFA0000B54A /* Products */;
 					ProjectRef = BC3E2942E8F74647B2054DB2 /* RNVectorIcons.xcodeproj */;
+				},
+				{
+					ProductGroup = 4AE8AE47206F4AFD0000B54A /* Products */;
+					ProjectRef = C55A8CB74D7C4E898A969142 /* RNVectorIcons.xcodeproj */;
 				},
 				{
 					ProductGroup = 4A1A4AC020B729B200872BD9 /* Products */;
@@ -1363,6 +1363,8 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				DEVELOPMENT_TEAM = XU8UXGS4UT;
+				FRAMEWORK_SEARCH_PATHS = (
+				);
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
 					"$(inherited)",
@@ -1379,7 +1381,6 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 				);
 				OTHER_LDFLAGS = (
 					"-ObjC",
@@ -1396,6 +1397,8 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				COPY_PHASE_STRIP = NO;
 				DEVELOPMENT_TEAM = XU8UXGS4UT;
+				FRAMEWORK_SEARCH_PATHS = (
+				);
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(SRCROOT)/../node_modules/react-native-vector-icons/RNVectorIconsManager",
@@ -1408,7 +1411,6 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 				);
 				OTHER_LDFLAGS = (
 					"-ObjC",
@@ -1426,6 +1428,8 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = NO;
 				DEVELOPMENT_TEAM = XU8UXGS4UT;
+				FRAMEWORK_SEARCH_PATHS = (
+				);
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(SRCROOT)/../node_modules/react-native-vector-icons/RNVectorIconsManager",
@@ -1453,6 +1457,8 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = XU8UXGS4UT;
+				FRAMEWORK_SEARCH_PATHS = (
+				);
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(SRCROOT)/../node_modules/react-native-vector-icons/RNVectorIconsManager",
@@ -1486,6 +1492,8 @@
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = XU8UXGS4UT;
 				ENABLE_TESTABILITY = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+				);
 				GCC_NO_COMMON_BLOCKS = YES;
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1498,7 +1506,6 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 				);
 				OTHER_LDFLAGS = (
 					"-ObjC",
@@ -1524,6 +1531,8 @@
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = XU8UXGS4UT;
+				FRAMEWORK_SEARCH_PATHS = (
+				);
 				GCC_NO_COMMON_BLOCKS = YES;
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1536,7 +1545,6 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 				);
 				OTHER_LDFLAGS = (
 					"-ObjC",
@@ -1566,7 +1574,6 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.facebook.REACT.Reader_X-tvOSTests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1592,7 +1599,6 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.facebook.REACT.Reader_X-tvOSTests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
