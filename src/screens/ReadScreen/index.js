@@ -558,6 +558,7 @@ class ReadScreen extends PureComponent {
    * 注意：跳转后，缓存清空，重新初始化
    */
   _jumpToChapter = async (chapterIndex) => {
+    const preChapterIndex = this.currentChapter;
     const chapters = this.state.chapters;
     if (chapterIndex < 0 || chapterIndex > (chapters.length - 1)) {
       alert('不存在该章节');
@@ -586,7 +587,10 @@ class ReadScreen extends PureComponent {
       // init some data
       this.setState({
         status: STATUS.FINISH,
-      }, () => this._resetPagesProgress(this.allPageIndex));
+      }, () => {
+        this._resetPagesProgress(this.allPageIndex);
+        this._onChapterChange(preChapterIndex, chapterIndex);
+      });
     });
   }
 
