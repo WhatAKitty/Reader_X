@@ -137,7 +137,6 @@ android {
 }
 
 dependencies {
-    compile project(':react-native-threads')
     compile project(':react-native-screen-brightness')
     compile project(':react-native-vector-icons')
     compile project(':realm')

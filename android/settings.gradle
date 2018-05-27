@@ -1,6 +1,4 @@
 rootProject.name = 'Reader_X'
-include ':react-native-threads'
-project(':react-native-threads').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-threads/android')
 include ':react-native-screen-brightness'
 project(':react-native-screen-brightness').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-screen-brightness/android')
 include ':react-native-vector-icons'
