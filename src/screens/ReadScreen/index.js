@@ -373,12 +373,12 @@ class ReadScreen extends PureComponent {
     } else if (oldAllPageIndex < this.allPageIndex) {
       // 下一页
       if (this._shouldPapareChapter(1)) {
-        this._papareChapter(this.state.chapters, this.currentChapter + 1);
+        await this._papareChapter(this.state.chapters, this.currentChapter + 1);
       }
     } else if (oldAllPageIndex > this.allPageIndex) {
       // 上一页
       if (this._shouldPapareChapter(-1)) {
-        this._papareChapter(this.state.chapters, this.currentChapter - 1);
+        await this._papareChapter(this.state.chapters, this.currentChapter - 1);
       }
     }
 
@@ -403,12 +403,12 @@ class ReadScreen extends PureComponent {
   /**
    * 章节切换逻辑
    * 
-   * @see this._recordChapterChange(currentChapterIndex)
+   * @see this._recordChapterChange(currentChapterIndex, progress, chapters)
    */
   _onChapterChange = async (pre, next) => {
-    this._recordChapterChange(this.currentChapter = next);
+    this._recordChapterChange(this.currentChapter = next, null, this.state.chapters);
     // 更改标题
-    InteractionManager.runAfterInteractions(() => this.setState({
+    requestAnimationFrame(() => this.setState({
       chapterTitle: this.cachedChapters[this.currentChapter].title,
     }));
   }
@@ -720,7 +720,7 @@ class ReadScreen extends PureComponent {
         book.lastReadedTime = new Date().getTime();
         book.lastReadedChapter = currentChapterIndex;
         book.lastReadedChapterName = chapter.title;
-        progress !== null && (book.progress = +progress);
+        ('undefined' !== typeof progress) && progress !== null && (book.progress = +progress);
       });
 
       // 增加该章节缓存
