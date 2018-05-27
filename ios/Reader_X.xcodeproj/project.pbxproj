@@ -5,6 +5,7 @@
 	};
 	objectVersion = 46;
 	objects = {
+
 /* Begin PBXBuildFile section */
 		00C302E51ABCBA2D00DB3ED1 /* libRCTActionSheet.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 00C302AC1ABCB8CE00DB3ED1 /* libRCTActionSheet.a */; };
 		00C302E71ABCBA2D00DB3ED1 /* libRCTGeolocation.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 00C302BA1ABCB90400DB3ED1 /* libRCTGeolocation.a */; };
@@ -49,6 +50,7 @@
 		C063F0C6DC7F4689A1C83404 /* Entypo.ttf in Resources */ = {isa = PBXBuildFile; fileRef = ED4205E412DA4EE48F62095A /* Entypo.ttf */; };
 		CB1F5C7A16EF490887B66152 /* libc++.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 7612ED4384AA4B47AE3AAEA0 /* libc++.tbd */; };
 		E19B589FAA5E4039BC1BB840 /* FontAwesome.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 9C99B4CF200646A3B04D04CD /* FontAwesome.ttf */; };
+		E2966CF4FC664CFDBA0D9979 /* libRNThread.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 477BC29C999D4CF6AE775A19 /* libRNThread.a */; };
 		EA78C81614034A8392D8C9C0 /* MaterialCommunityIcons.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 497B38CEA56042E1833A7A9C /* MaterialCommunityIcons.ttf */; };
 		EF5FD4CACDFC468E9AA85F9B /* Ionicons.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 11AD57737DCD483491CDABC7 /* Ionicons.ttf */; };
 		F49EFB0139CC437D9B213607 /* (null) in Frameworks */ = {isa = PBXBuildFile; };
@@ -272,6 +274,13 @@
 			remoteGlobalIDString = F60690131CA2766F0003FB26;
 			remoteInfo = RealmReact;
 		};
+		4A90572920B9C65F00C6813B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 34A7B781E46241749D432A11 /* RNThread.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 134814201AA4EA6300B7C361;
+			remoteInfo = RNThread;
+		};
 		4AE8AE39206F4AFD0000B54A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 146833FF1AC3E56700842450 /* React.xcodeproj */;
@@ -387,6 +396,8 @@
 		2D02E47B1E0B4A5D006451C7 /* Reader_X-tvOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Reader_X-tvOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2D02E4901E0B4A5D006451C7 /* Reader_X-tvOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Reader_X-tvOSTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2D16E6891FA4F8E400B85C8A /* libReact.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = libReact.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		34A7B781E46241749D432A11 /* RNThread.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RNThread.xcodeproj; path = "../node_modules/react-native-threads/ios/RNThread.xcodeproj"; sourceTree = "<group>"; };
+		477BC29C999D4CF6AE775A19 /* libRNThread.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libRNThread.a; sourceTree = "<group>"; };
 		497B38CEA56042E1833A7A9C /* MaterialCommunityIcons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = MaterialCommunityIcons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/MaterialCommunityIcons.ttf"; sourceTree = "<group>"; };
 		54C357755E9B4340A4510341 /* ScreenBrightness.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = ScreenBrightness.xcodeproj; path = "../node_modules/react-native-screen-brightness/ios/ScreenBrightness.xcodeproj"; sourceTree = "<group>"; };
 		5E91572D1DD0AC6500FF2AA8 /* RCTAnimation.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RCTAnimation.xcodeproj; path = "../node_modules/react-native/Libraries/NativeAnimation/RCTAnimation.xcodeproj"; sourceTree = "<group>"; };
@@ -437,6 +448,7 @@
 				CB1F5C7A16EF490887B66152 /* libc++.tbd in Frameworks */,
 				F49EFB0139CC437D9B213607 /* (null) in Frameworks */,
 				B7A1568BE64B4102ACF7841F /* libScreenBrightness.a in Frameworks */,
+				E2966CF4FC664CFDBA0D9979 /* libRNThread.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -605,6 +617,14 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		4A90572620B9C65F00C6813B /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				4A90572A20B9C65F00C6813B /* libRNThread.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		4AE8AE0B206F4AFA0000B54A /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -631,7 +651,7 @@
 				0A9DF33CA02D404C944648D9 /* SimpleLineIcons.ttf */,
 				29B607969B1547BE8C31677D /* Zocial.ttf */,
 				C8847B7860B04AF9B96F8186 /* libScreenBrightness.a */,
-				A1B6997F50BC4C3ABBBA189D /* libRNBackgroundFetch.a */,
+				477BC29C999D4CF6AE775A19 /* libRNThread.a */,
 			);
 			name = "Recovered References";
 			sourceTree = "<group>";
@@ -688,6 +708,7 @@
 				0E04A230ED4B488B8B286B51 /* RealmReact.xcodeproj */,
 				C55A8CB74D7C4E898A969142 /* RNVectorIcons.xcodeproj */,
 				54C357755E9B4340A4510341 /* ScreenBrightness.xcodeproj */,
+				34A7B781E46241749D432A11 /* RNThread.xcodeproj */,
 			);
 			name = Libraries;
 			sourceTree = "<group>";
@@ -905,6 +926,10 @@
 				{
 					ProductGroup = 4A2007F41F920F9E00BEB277 /* Products */;
 					ProjectRef = 0E04A230ED4B488B8B286B51 /* RealmReact.xcodeproj */;
+				},
+				{
+					ProductGroup = 4A90572620B9C65F00C6813B /* Products */;
+					ProjectRef = 34A7B781E46241749D432A11 /* RNThread.xcodeproj */;
 				},
 				{
 					ProductGroup = 4AE8AE0B206F4AFA0000B54A /* Products */;
@@ -1131,6 +1156,13 @@
 			fileType = archive.ar;
 			path = libRealmReact.a;
 			remoteRef = 4A2007F71F920F9E00BEB277 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		4A90572A20B9C65F00C6813B /* libRNThread.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libRNThread.a;
+			remoteRef = 4A90572920B9C65F00C6813B /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		4AE8AE3A206F4AFD0000B54A /* libReact.a */ = {
@@ -1363,8 +1395,7 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				DEVELOPMENT_TEAM = XU8UXGS4UT;
-				FRAMEWORK_SEARCH_PATHS = (
-				);
+				FRAMEWORK_SEARCH_PATHS = "";
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
 					"$(inherited)",
@@ -1375,12 +1406,14 @@
 					"$(SRCROOT)/../node_modules/realm/src/**",
 					"$(SRCROOT)/../node_modules/react-native-vector-icons/RNVectorIconsManager",
 					"$(SRCROOT)/../node_modules/react-native-screen-brightness/ios/ScreenBrightness",
+					"$(SRCROOT)/../node_modules/react-native-threads/ios",
 				);
 				INFOPLIST_FILE = Reader_XTests/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 				);
 				OTHER_LDFLAGS = (
 					"-ObjC",
@@ -1397,20 +1430,21 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				COPY_PHASE_STRIP = NO;
 				DEVELOPMENT_TEAM = XU8UXGS4UT;
-				FRAMEWORK_SEARCH_PATHS = (
-				);
+				FRAMEWORK_SEARCH_PATHS = "";
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(SRCROOT)/../node_modules/react-native-vector-icons/RNVectorIconsManager",
 					"$(SRCROOT)/../node_modules/realm/src/**",
 					"$(SRCROOT)/../node_modules/react-native-vector-icons/RNVectorIconsManager",
 					"$(SRCROOT)/../node_modules/react-native-screen-brightness/ios/ScreenBrightness",
+					"$(SRCROOT)/../node_modules/react-native-threads/ios",
 				);
 				INFOPLIST_FILE = Reader_XTests/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 				);
 				OTHER_LDFLAGS = (
 					"-ObjC",
@@ -1428,14 +1462,14 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = NO;
 				DEVELOPMENT_TEAM = XU8UXGS4UT;
-				FRAMEWORK_SEARCH_PATHS = (
-				);
+				FRAMEWORK_SEARCH_PATHS = "";
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(SRCROOT)/../node_modules/react-native-vector-icons/RNVectorIconsManager",
 					"$(SRCROOT)/../node_modules/realm/src/**",
 					"$(SRCROOT)/../node_modules/react-native-vector-icons/RNVectorIconsManager",
 					"$(SRCROOT)/../node_modules/react-native-screen-brightness/ios/ScreenBrightness",
+					"$(SRCROOT)/../node_modules/react-native-threads/ios",
 				);
 				INFOPLIST_FILE = Reader_X/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
@@ -1457,14 +1491,14 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = XU8UXGS4UT;
-				FRAMEWORK_SEARCH_PATHS = (
-				);
+				FRAMEWORK_SEARCH_PATHS = "";
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(SRCROOT)/../node_modules/react-native-vector-icons/RNVectorIconsManager",
 					"$(SRCROOT)/../node_modules/realm/src/**",
 					"$(SRCROOT)/../node_modules/react-native-vector-icons/RNVectorIconsManager",
 					"$(SRCROOT)/../node_modules/react-native-screen-brightness/ios/ScreenBrightness",
+					"$(SRCROOT)/../node_modules/react-native-threads/ios",
 				);
 				INFOPLIST_FILE = Reader_X/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
@@ -1492,8 +1526,7 @@
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = XU8UXGS4UT;
 				ENABLE_TESTABILITY = YES;
-				FRAMEWORK_SEARCH_PATHS = (
-				);
+				FRAMEWORK_SEARCH_PATHS = "";
 				GCC_NO_COMMON_BLOCKS = YES;
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1501,11 +1534,13 @@
 					"$(SRCROOT)/../node_modules/realm/src/**",
 					"$(SRCROOT)/../node_modules/react-native-vector-icons/RNVectorIconsManager",
 					"$(SRCROOT)/../node_modules/react-native-screen-brightness/ios/ScreenBrightness",
+					"$(SRCROOT)/../node_modules/react-native-threads/ios",
 				);
 				INFOPLIST_FILE = "Reader_X-tvOS/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 				);
 				OTHER_LDFLAGS = (
 					"-ObjC",
@@ -1531,8 +1566,7 @@
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = XU8UXGS4UT;
-				FRAMEWORK_SEARCH_PATHS = (
-				);
+				FRAMEWORK_SEARCH_PATHS = "";
 				GCC_NO_COMMON_BLOCKS = YES;
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1540,11 +1574,13 @@
 					"$(SRCROOT)/../node_modules/realm/src/**",
 					"$(SRCROOT)/../node_modules/react-native-vector-icons/RNVectorIconsManager",
 					"$(SRCROOT)/../node_modules/react-native-screen-brightness/ios/ScreenBrightness",
+					"$(SRCROOT)/../node_modules/react-native-threads/ios",
 				);
 				INFOPLIST_FILE = "Reader_X-tvOS/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 				);
 				OTHER_LDFLAGS = (
 					"-ObjC",
@@ -1574,6 +1610,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.facebook.REACT.Reader_X-tvOSTests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1599,6 +1636,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.facebook.REACT.Reader_X-tvOSTests";
 				PRODUCT_NAME = "$(TARGET_NAME)";

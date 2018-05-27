@@ -12,10 +12,12 @@ import {
   LayoutAnimation,
   TouchableWithoutFeedback,
   InteractionManager,
+  Alert,
 } from 'react-native';
 
 import { Icon, Button } from 'react-native-elements';
 import { HeaderBackButton } from 'react-navigation';
+// import { Thread } from 'react-native-threads';
 import { Pages as ReadPager } from '../../components/ReactNativePages';
 import { iOSUIKitTall, iOSColors } from 'react-native-typography'
 
@@ -23,6 +25,7 @@ import BottomNav from './BottomNav';
 import Page from '../../components/Page';
 import EmptyView from '../../components/EmptyView';
 
+import task from '../../headlessTasks/ChapterCacheTask';
 import { content, chapterList } from '../../services/book';
 import getRealm, { SortDescriptor } from '../../models';
 import constants from '../../utils/constants';
@@ -34,6 +37,7 @@ import { Promise } from 'core-js';
 
 const { STATUS } = constants;
 
+// const cachedThread = new Thread('./src/headlessTasks/ChapterCacheTask.js');
 class ReadScreen extends PureComponent {
   static navigationOptions = ({ navigation, screenProps }) => {
     let barShow = navigation.state.params.barShow ? {} : { header: null };
@@ -60,6 +64,26 @@ class ReadScreen extends PureComponent {
             underlayColor={theme.styles.navButton.underlayColor}
             onPress={() => {
               // 后台线程缓存所有
+              Alert.alert(
+                '提示',
+                '是否缓存全部',
+                [
+                  {
+                    text: '缓存全部', onPress: () => {
+                      // cachedThread.postMessage(JSON.stringify({
+                      //   bookId: navigation.state.params.book._id,
+                      // }));
+                      InteractionManager.runAfterInteractions(() => {
+                        task.task({ bookId: navigation.state.params.book._id })
+                      })
+
+                    }
+                  },
+                  { text: '取消', style: 'cancle' },
+                ],
+                { cancelable: true }
+              )
+
             }}
           />
           <Icon
@@ -113,6 +137,19 @@ class ReadScreen extends PureComponent {
   componentDidMount() {
     this._init();
     this._themeInit();
+
+    // cachedThread.onmessage = (message) => {
+    //   const data = JSON.parse(message);
+    //   const { progress, finished, error } = data;
+
+    //   if (error) {
+    //     alert('缓存失败，请重试');
+    //   } else if (finished) {
+    //     alert('缓存完成');
+    //   } else {
+    //     alert(`进行中  ${progress}`);
+    //   }
+    // }
   }
 
   renderNone() {
@@ -369,7 +406,7 @@ class ReadScreen extends PureComponent {
    * @see this._recordChapterChange(currentChapterIndex)
    */
   _onChapterChange = async (pre, next) => {
-    this.currentChapter = next
+    this._recordChapterChange(this.currentChapter = next);
     // 更改标题
     InteractionManager.runAfterInteractions(() => this.setState({
       chapterTitle: this.cachedChapters[this.currentChapter].title,
@@ -382,7 +419,7 @@ class ReadScreen extends PureComponent {
    * @param direction 翻页方向
    */
   _shouldPapareChapter = (direction, chapters = this.state.chapters) => {
-    if ((this.currentChapter - 1) <= 0 || (this.currentChapter + 1) >= (chapters.length - 1)) {
+    if ((this.currentChapter - 1) < 0 || (this.currentChapter + 1) > (chapters.length - 1)) {
       // 前一章为第一章或后一章为最后一章不加载
       return false;
     }
@@ -443,19 +480,25 @@ class ReadScreen extends PureComponent {
       return false;
     }
 
-    const { body, title } = chapter;
+    const { body } = chapter;
     const { chapterPages: pages, styles } = await this._processContent(body);
     const oldCachedChapter = this.cachedChapters[chapterIndex];
     const needUpdated = 'undefined' === typeof oldCachedChapter || oldCachedChapter.loading;
+    const title = chapters[chapterIndex].title;
     this.cachedChapters[chapterIndex] = {
       pages,
       styles,
       progress: 0,
       size: pages.length,
-      title: chapters[chapterIndex].title,
+      title,
       raw: body,
     };
-    InteractionManager.runAfterInteractions(() => this._recordChapterChange());
+    InteractionManager.runAfterInteractions(() => this._cacheChapter({
+      index: chapterIndex,
+      content: body,
+      title,
+      link,
+    }));
     needUpdated && InteractionManager.runAfterInteractions(() => this.forceUpdate());
 
     // 加载中效果页面，防止网络请求过慢导致的卡顿问题
@@ -669,31 +712,50 @@ class ReadScreen extends PureComponent {
   _recordChapterChange = async (currentChapterIndex, progress, chapters = this.state.chapters) => {
     const { realm, err } = await getRealm();
     const chapter = chapters[currentChapterIndex];
-    const cachedChapter = this.cachedChapters[this.currentChapter];
+    const cachedChapter = this.cachedChapters[currentChapterIndex];
     const book = await this._getRealmBook();
-    const realmChapter = realm.objectForPrimaryKey('Chapter', chapter.link);
     InteractionManager.runAfterInteractions(() => {
       realm.write(() => {
+        console.log('read chapter record', currentChapterIndex);
         // 修改图书信息
         book.lastReadedTime = new Date().getTime();
         book.lastReadedChapter = currentChapterIndex;
         book.lastReadedChapterName = chapter.title;
-        book.progress = +progress;
+        progress !== null && (book.progress = +progress);
+      });
 
-        // 增加该章节缓存
-        if (!realmChapter) {
-          const book = this.props.navigation.getParam('book', {});
-          realm.create('Chapter', {
-            ...chapter,
-            bookId: book._id,
-            title: chapter.title,
-            link: chapter.link,
-            index: currentChapterIndex,
-            content: cachedChapter.raw,
-          });
-        }
+      // 增加该章节缓存
+      this._cacheChapter({
+        index: this.currentChapterIndex,
+        content: cachedChapter.raw,
+        title: chapter.title,
+        link: chapter.link,
       });
     });
+  }
+
+  /**
+   * 缓存某个章节
+   * 注意：需要外部使用realm.write包裹
+   * 
+   * @param chapter 需要缓存的章节
+   */
+  _cacheChapter = async ({ index, content, title, link }) => {
+    const { realm, err } = await getRealm();
+    const realmChapter = realm.objectForPrimaryKey('Chapter', link);
+    // 增加该章节缓存
+    if (!realmChapter) {
+      const book = this.props.navigation.getParam('book', {});
+      realm.write(() => {
+        realm.create('Chapter', {
+          bookId: book._id,
+          title,
+          link,
+          index,
+          content,
+        });
+      });
+    }
   }
 
   /**
