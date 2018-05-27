@@ -105,7 +105,6 @@ class ShelfScreen extends Component {
             right: [{
               text: '移除',
               onPress: (rowData, rowID) => {
-                console.log(rowData)
                 InteractionManager.runAfterInteractions(async () => {
                   const { realm, err } = await getRealm();
                   realm.write(() => {

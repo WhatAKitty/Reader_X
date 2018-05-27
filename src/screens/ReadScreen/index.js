@@ -716,7 +716,6 @@ class ReadScreen extends PureComponent {
     const book = await this._getRealmBook();
     InteractionManager.runAfterInteractions(() => {
       realm.write(() => {
-        console.log('read chapter record', currentChapterIndex);
         // 修改图书信息
         book.lastReadedTime = new Date().getTime();
         book.lastReadedChapter = currentChapterIndex;
