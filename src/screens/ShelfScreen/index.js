@@ -6,6 +6,7 @@ import {
   Text,
   Image,
   AsyncStorage,
+  InteractionManager,
 } from 'react-native';
 
 import { Icon, Button } from 'react-native-elements';
@@ -21,6 +22,7 @@ import { list } from '../../services/book';
 
 import { theme } from '../../theme';
 import styles from './index.style';
+import iOSColors from 'react-native-typography/dist/helpers/iOSColors';
 
 class ShelfScreen extends Component {
   static navigationOptions = ({ navigation, screenProps }) => {
@@ -96,6 +98,26 @@ class ShelfScreen extends Component {
         <BookList
           ref="bookList"
           type={BookListType.Simple}
+          swipable={true}
+          swipeProps={{
+            autoClose: true,
+            backgroundColor: iOSColors.white,
+            right: [{
+              text: '移除',
+              onPress: (rowData, rowID) => {
+                console.log(rowData)
+                InteractionManager.runAfterInteractions(async () => {
+                  const { realm, err } = await getRealm();
+                  realm.write(() => {
+                    realm.delete(realm.objectForPrimaryKey('Shelf', rowData._id));
+                  });
+                });
+              },
+              backgroundColor: theme.styles.variables.colors.main,
+              type: 'delete',
+              textColor: iOSColors.white,
+            }],
+          }}
           datasource={this._onFetch}
           ListFooterComponent={this.renderFooter.bind(this)}
           extraData={theme.styles.variables.colors.main}  // 设置主题色（如果不设置则无法触发list刷新DOM）

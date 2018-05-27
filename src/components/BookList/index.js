@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 
 import { Icon, Button, List, ListItem, Divider } from 'react-native-elements';
+import Swipeout from '../ReactNativeSwipeout';
 
 import Page from '../Page';
 import RefreshFlatList, { RefreshState } from '../RefreshFlatList';
@@ -33,12 +34,15 @@ class BookList extends Component {
     this.state = {
       booklist: this.props.booklist || [],
       loadingFlag: true,
+      rowID: -1,
     };
 
     this.renderSimpleInfo = this.renderSimpleInfo.bind(this);
     this.renderCompleteInfo = this.renderCompleteInfo.bind(this);
     this.renderSimpleRow = this.renderSimpleRow.bind(this);
     this.renderCompleteRow = this.renderCompleteRow.bind(this);
+    this.renderPureRow = this.renderPureRow.bind(this);
+    this.renderSwipableRow = this.renderSwipableRow.bind(this);
     this.renderRow = this.renderRow.bind(this);
     this.renderSeparator = this.renderSeparator.bind(this);
     this.renderListFooterComponent = this.renderListFooterComponent.bind(this);
@@ -138,7 +142,7 @@ class BookList extends Component {
     );
   }
 
-  renderRow({ item: rowData, index }) {
+  renderPureRow({ item: rowData, index }) {
     const onPress = this.props.onItemClicked;
     switch (this.props.type) {
       case BookListType.Simple:
@@ -149,6 +153,38 @@ class BookList extends Component {
         return this.props.renderRow({ item: rowData, index, onPress });
       default:
         throw 'error book list type specified.';
+    }
+  }
+
+  renderSwipableRow({ item: rowData, index }) {
+    const swipeProps = {
+      ...this.props.swipeProps,
+      right: (this.props.swipeProps.right || []).map(btn => ({
+        ...btn,
+        onPress: (sectionID, rowID) => {
+          btn.onPress(this.state.booklist[rowID], rowID);
+        },
+      })),
+      left: (this.props.swipeProps.left || []).map(btn => ({
+        ...btn,
+        onPress: (sectionID, rowID) => {
+          btn.onPress(this.state.booklist[rowID], rowID);
+        },
+      })),
+      rowID: index,
+    }
+    return (
+      <Swipeout {...swipeProps}>
+        {this.renderPureRow({ item: rowData, index })}
+      </Swipeout>
+    );
+  }
+
+  renderRow({ item: rowData, index }) {
+    if (this.props.swipable) {
+      return this.renderSwipableRow({ item: rowData, index });
+    } else {
+      return this.renderPureRow({ item: rowData, index });
     }
   }
 
@@ -206,6 +242,8 @@ class BookList extends Component {
 }
 
 BookList.propTypes = {
+  swipable: PropTypes.bool.isRequired,
+  swipeProps: PropTypes.object.isRequired,
   dynamic: PropTypes.bool.isRequired,
   datasource: PropTypes.func.isRequired,
   type: PropTypes.oneOf(Object.values(BookListType)).isRequired,
@@ -215,6 +253,8 @@ BookList.propTypes = {
 };
 
 BookList.defaultProps = {
+  swipable: false,
+  swipeProps: {},
   dynamic: true,
   datasource: list,
   type: BookListType.Complete,
