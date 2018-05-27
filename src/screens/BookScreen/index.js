@@ -7,6 +7,7 @@ import {
   Image,
   ScrollView,
   TouchableWithoutFeedback,
+  Alert,
 } from 'react-native';
 
 import { NavigationActions, HeaderBackButton } from 'react-navigation';
@@ -319,17 +320,25 @@ class BookScreen extends Component {
             requestAnimationFrame(async () => {
               const { realm, err } = await getRealm();
               const alreadyIn = realm.objectForPrimaryKey('Shelf', book._id);
-              if (alreadyIn) return false;
+              if (alreadyIn) {
+                alert(`${book.title} 已在书架`);
+                return false;
+              }
 
               // TODO, 如果加入的书籍本身已经被阅读过，则直接提取阅读记录存储到书架内
               const appendTime = new Date().getTime();
-              realm.write(() => {
-                realm.create('Shelf', {
-                  book,
-                  bookId: book._id,
-                  lastAppendTime: appendTime,
+              try {
+                realm.write(() => {
+                  realm.create('Shelf', {
+                    book,
+                    bookId: book._id,
+                    lastAppendTime: appendTime,
+                  });
                 });
-              });
+                alert(`${book.title} 加入书架成功`);
+              } catch (e) {
+                alert(`${book.title} 加入书架失败`);
+              }
             });
           }
         }}
