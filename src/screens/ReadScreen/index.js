@@ -321,18 +321,16 @@ class ReadScreen extends PureComponent {
 
     // fetch realm book info
     const realmBook = await this._getRealmBook();
-    this.currentChapter = realmBook.lastReadedChapter;
+    const prevChapterIndex = this.currentChapter = realmBook.lastReadedChapter;
     this.allPageIndex = realmBook.lastChapterReadPage;
 
     if ('undefined' === typeof this.currentChapter || this.currentChapter === null) {
       // if current chapter index is null
       this.currentChapter = 0;
-      this._recordChapterChange(this.currentChapter, realmBook.progress, chapters);
     } else if (this.currentChapter > (chapters.length - 1)) {
       // if current chapter index lager than last chapter index, 
       // reset current chapter index and set into realm database.
       this.currentChapter = chapters.length - 1;
-      this._recordChapterChange(this.currentChapter, realmBook.progress, chapters);
     }
 
     // init cachedChapters
@@ -344,6 +342,12 @@ class ReadScreen extends PureComponent {
     }
     if (this._shouldPapareChapter(1, chapters)) {
       await this._papareChapter(chapters, this.currentChapter + 1);
+    }
+
+    // record chapter change
+    if (prevChapterIndex !== this.currentChapter) {
+      // 发生变化
+      this._recordChapterChange(this.currentChapter, realmBook.progress, chapters);
     }
 
     // init some data
