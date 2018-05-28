@@ -49,6 +49,7 @@ const BookTabNavigator = TabNavigator({
 }, {
   mode: 'screen',
   tabBarPosition: 'bottom',
+  swipeEnabled: false,
   // tabBarOptions: {
   //   activeTintColor: theme.styles.variables.color.main,
   // },
